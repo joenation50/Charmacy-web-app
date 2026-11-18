@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>CharMary Rider Portal</title>
+<meta name="theme-color" content="#FFC107">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="images/logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<link rel="stylesheet" href="shared/theme.css">
+<style>
+  body{min-height:100dvh}
+  .wrap{max-width:1180px;margin:0 auto;padding:1rem 1rem 4rem}
+  header.app{position:sticky;top:0;z-index:50;display:flex;justify-content:space-between;align-items:center;
+    gap:.8rem;padding:.7rem 1rem;margin:0 -1rem 1.2rem;background:var(--glass);backdrop-filter:blur(16px);
+    border-bottom:1px solid var(--border)}
+  .brand{display:flex;align-items:center;gap:.6rem;font-family:var(--font-display);font-weight:900}
+  .brand img{width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid var(--accent)}
+  .brand span{color:var(--accent)}
+  .brand small{display:block;font-size:.58rem;letter-spacing:.16em;color:var(--muted);font-weight:700}
+  .head-actions{display:flex;gap:.5rem;align-items:center}
+  .layout{display:grid;grid-template-columns:1fr;gap:1rem}
+  @media(min-width:980px){.layout{grid-template-columns:1.05fr .95fr;align-items:start}.sticky{position:sticky;top:84px}}
+  .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem}
+  .section-head h2{font-size:1.05rem}
+  .geo-results{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:40;background:var(--surface);
+    border:1px solid var(--border-strong);border-radius:var(--radius-sm);overflow:hidden;box-shadow:var(--shadow)}
+  .geo-item{display:flex;gap:.6rem;padding:.65rem .8rem;cursor:pointer;font-size:.82rem;border-bottom:1px solid var(--border);transition:.15s}
+  .geo-item:last-child{border-bottom:0}
+  .geo-item:hover{background:var(--surface-2)}
+  .geo-item i{color:var(--accent);margin-top:2px}
+  .geo-item b{display:block;font-size:.82rem}
+  .geo-item span{font-size:.7rem;color:var(--muted)}
+  .search-wrap{position:relative}
+  .search-row{display:flex;gap:.5rem}
+  .search-row input{flex:1;min-width:0}
+  .metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.55rem;margin:.9rem 0}
+  @media(max-width:520px){.metric-grid{grid-template-columns:repeat(2,1fr)}}
+  .metric{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.6rem;text-align:center}
+  .metric b{display:block;font-family:var(--font-display);font-size:1.05rem}
+  .metric span{font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+  .pills{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.7rem}
+  .pill{font-size:.66rem;font-weight:700;padding:.32rem .6rem;border-radius:999px;background:var(--surface-3);color:var(--muted);display:inline-flex;gap:.35rem;align-items:center}
+  .pill.good{color:var(--green);background:var(--ok-bg)}.pill.warn{color:var(--amber);background:var(--warn-bg)}.pill.bad{color:var(--red);background:var(--bad-bg)}
+  .shield{display:flex;gap:.7rem;align-items:flex-start;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:var(--radius-sm);padding:.8rem;font-size:.75rem;color:var(--muted)}
+  .shield i{color:var(--blue);font-size:1rem;margin-top:2px}
+  .big-pct{font-family:var(--font-display);font-size:2.4rem;font-weight:900;line-height:1;letter-spacing:-.04em}
+  .big-pct small{font-size:.9rem;color:var(--muted);font-weight:700}
+  .hide{display:none!important}
+  .log{font:11px/1.5 ui-monospace,monospace;color:var(--blue);background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:.6rem;max-height:120px;overflow:auto;white-space:pre-wrap}
+  #map{height:300px}
+  @media(min-width:980px){#map{height:380px}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="overlay">
+  <div class="card fade-up" style="width:min(360px,92vw)">
+    <div style="text-align:center;margin-bottom:1rem">
+      <img src="images/logo.jpg" style="width:64px;height:64px;border-radius:50%;border:2px solid var(--accent);object-fit:cover">
+      <h2 style="margin-top:.6rem;font-size:1.2rem">Rider Portal</h2>
+      <p class="small muted">Sign in to start a delivery</p>
+    </div>
+    <div class="field"><label>Username</label><input id="username" placeholder="rider" autocomplete="username"></div>
+    <div class="field"><label>Password</label><input id="password" type="password" placeholder="••••" autocomplete="current-password"></div>
+    <button class="btn btn-primary btn-block" onclick="login()"><i class="fas fa-right-to-bracket"></i> Login</button>
+    <p class="tiny faint" style="margin-top:.7rem;text-align:center">Demo credentials unchanged (rider / 1234)</p>
+  </div>
+</div>
+
+<!-- PORTAL -->
+<div id="riderContent" class="hide">
+<div class="wrap">
+  <header class="app">
+    <div class="brand">
+      <img src="images/logo.jpg" alt="CharMary">
+      <div>CHAR<span>MARY</span><small>RIDER PORTAL</small></div>
+    </div>
+    <div class="head-actions">
+      <button class="icon-btn" onclick="CM.toggle(event)" aria-label="Toggle theme"><i class="fas fa-sun" data-theme-icon></i></button>
+      <button class="btn btn-ghost" onclick="logout()"><i class="fas fa-arrow-right-from-bracket"></i> Logout</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- SETUP -->
+    <div>
+      <section class="card fade-up">
+        <div class="section-head"><h2><i class="fas fa-box-open" style="color:var(--accent)"></i> Shipment Setup</h2><span class="badge badge-idle" id="setupState">Draft</span></div>
+
+        <div class="field-row">
+          <div class="field"><label>Order ID</label>
+            <div class="search-row"><input id="orderId" placeholder="CH-90210"><button class="btn btn-ghost" style="border-radius:var(--radius-sm)" onclick="generateOrderId()">Gen</button></div>
+          </div>
+          <div class="field"><label>Priority</label>
+            <select id="priority"><option value="standard">Standard</option><option value="express">Express ⚡</option></select>
+          </div>
+        </div>
+
+        <p class="tiny" style="font-weight:800;letter-spacing:.1em;color:var(--accent);margin:.4rem 0 .6rem">SENDER</p>
+        <div class="field-row">
+          <div class="field"><label>Sender name</label><input id="senderName" placeholder="e.g. Ada Okafor"></div>
+          <div class="field"><label>Sender phone</label><input id="senderPhone" type="tel" placeholder="080…"></div>
+        </div>
+
+        <p class="tiny" style="font-weight:800;letter-spacing:.1em;color:var(--accent);margin:.4rem 0 .6rem">RECEIVER</p>
+        <div class="field-row">
+          <div class="field"><label>Receiver name</label><input id="receiverName" placeholder="e.g. Emeka N."></div>
+          <div class="field"><label>Receiver phone</label><input id="receiverPhone" type="tel" placeholder="080…"></div>
+        </div>
+
+        <p class="tiny" style="font-weight:800;letter-spacing:.1em;color:var(--accent);margin:.4rem 0 .6rem">PACKAGE</p>
+        <div class="field-row">
+          <div class="field"><label>Type</label>
+            <select id="packageType">
+              <option>Document</option><option>Food</option><option>Parcel</option>
+              <option>Fragile</option><option>Electronics</option><option>Other</option>
+            </select>
+          </div>
+          <div class="field"><label>Delivery fee (₦)</label><input id="fee" type="number" min="0" placeholder="1500"></div>
+        </div>
+        <div class="field"><label>Package note</label><textarea id="packageNote" rows="2" placeholder="e.g. Handle with care — cake inside"></textarea></div>
+
+        <p class="tiny" style="font-weight:800;letter-spacing:.1em;color:var(--accent);margin:.4rem 0 .6rem">DESTINATION</p>
+        <div class="field">
+          <label>Search destination</label>
+          <div class="search-wrap">
+            <div class="search-row">
+              <input id="dropoffAddress" placeholder="Search any address, landmark or street…" autocomplete="off">
+              <button class="btn btn-ghost" style="border-radius:var(--radius-sm)" onclick="useCurrentLocationAsDest()" title="Use current GPS"><i class="fas fa-crosshairs"></i></button>
+            </div>
+            <div id="geoResults" class="geo-results hide"></div>
+          </div>
+          <div id="destStatus" class="small muted" style="margin-top:.35rem">No destination pinned yet</div>
+        </div>
+
+        <p class="tiny" style="font-weight:800;letter-spacing:.1em;color:var(--accent);margin:.4rem 0 .6rem">RIDER</p>
+        <div class="field-row">
+          <div class="field"><label>Your name</label><input id="riderName" placeholder="Rider name"></div>
+          <div class="field"><label>Your phone</label><input id="riderPhone" type="tel" placeholder="080…"></div>
+        </div>
+        <div class="field"><label>Bike plate</label><input id="riderBike" placeholder="JME-123-AA"></div>
+
+        <button class="btn btn-primary btn-block" id="startBtn" onclick="startTracking()" style="margin-top:.4rem">
+          <i class="fas fa-play"></i> Start Tracking
+        </button>
+
+        <div class="shield" style="margin-top:1rem">
+          <i class="fas fa-shield-halved"></i>
+          <div><b>Keep this page open.</b> Browsers pause GPS when the tab is fully closed. Install the app, keep the screen on, and location will resume instantly when you return. Queued points sync automatically when back online.</div>
+        </div>
+      </section>
+    </div>
+
+    <!-- LIVE -->
+    <div class="sticky">
+      <section class="card fade-up" id="liveCard">
+        <div class="section-head">
+          <h2><i class="fas fa-satellite-dish" style="color:var(--accent)"></i> Live Tracking</h2>
+          <span class="badge badge-idle" id="liveState"><span class="dot"></span> Standby</span>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:1rem">
+          <div class="big-pct"><span id="pctNum">0</span><small>%</small></div>
+          <div style="text-align:right">
+            <div id="stageLabel" class="small" style="font-weight:800">Not started</div>
+            <div id="etaText" class="tiny muted">—</div>
+          </div>
+        </div>
+        <div class="progress" style="margin-top:.5rem"><div class="progress-fill" id="pctBar"></div></div>
+        <div class="timeline" id="timeline"></div>
+
+        <div class="metric-grid">
+          <div class="metric"><b id="mDist">—</b><span>Distance</span></div>
+          <div class="metric"><b id="mEta">—</b><span>ETA</span></div>
+          <div class="metric"><b id="mSpeed">—</b><span>Speed</span></div>
+          <div class="metric"><b id="mAcc">—</b><span>Accuracy</span></div>
+        </div>
+
+        <div class="pills">
+          <span class="pill" id="gpsPill"><i class="fas fa-location-crosshairs"></i> GPS: waiting</span>
+          <span class="pill" id="netPill"><i class="fas fa-wifi"></i> Network: —</span>
+          <span class="pill" id="syncPill"><i class="fas fa-cloud-arrow-up"></i> Sync: idle</span>
+        </div>
+
+        <div class="map-wrap" style="margin-top:.9rem">
+          <div id="map"></div>
+          <div class="map-badge"><span class="dot pulse" style="color:var(--green)"></span> Live map</div>
+          <button class="map-fab on" id="followBtn" style="bottom:12px;right:12px" onclick="toggleFollow()" title="Follow rider"><i class="fas fa-location-arrow"></i></button>
+        </div>
+
+        <div class="copy-row" style="margin-top:.9rem">
+          <input id="shareLink" readonly placeholder="Customer link appears after start">
+          <button class="btn btn-ghost" onclick="copyTrackingLink()" style="border-radius:var(--radius-sm)"><i class="fas fa-copy"></i></button>
+          <button class="btn btn-green" onclick="shareWhatsApp()" style="border-radius:var(--radius-sm)"><i class="fab fa-whatsapp"></i></button>
+        </div>
+
+        <div id="completeCard" class="hide" style="margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem">
+          <h3 class="card-title" style="color:var(--green)"><i class="fas fa-circle-check"></i> Complete Delivery</h3>
+          <p class="small muted" style="margin:.3rem 0 .6rem">Ask the customer for their 4-digit delivery PIN.</p>
+          <input id="verifyCode" maxlength="4" inputmode="numeric" placeholder="----"
+            style="width:100%;text-align:center;font-size:1.6rem;letter-spacing:.5em;font-weight:900;color:var(--green);background:var(--surface-2);border:1.5px solid var(--green);border-radius:var(--radius-sm);padding:.6rem;outline:none">
+          <button class="btn btn-green btn-block" id="confirmBtn" onclick="confirmDelivery()" style="margin-top:.6rem"><i class="fas fa-check"></i> Confirm Delivery</button>
+          <div id="verifyStatus" class="small" style="margin-top:.4rem"></div>
+        </div>
+      </section>
+
+      <details class="card flat" style="margin-top:1rem">
+        <summary class="small" style="cursor:pointer;font-weight:800;color:var(--muted)">Engine log</summary>
+        <div id="debugLog" class="log" style="margin-top:.6rem">Engine: standby…</div>
+      </details>
+    </div>
+  </div>
+</div>
+</div>
+
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script type="module">
+import { db, orderRef, setDoc, getDoc, onSnapshot, serverTimestamp, doc, updateDoc } from './shared/firebase.js';
+
+const $ = id => document.getElementById(id);
+const CFG = { maxAcc: 100, maxSpeed: 45, moveMs: 6000, stillMs: 15000, hbMs: 20000, queueMax: 400 };
+const QK = 'cmQueueV3';
+
+const S = {
+  active: false, orderId: '', seq: 0, watchId: null, restart: null,
+  lastFix: null, lastSent: 0, lastHb: 0, wl: null, audio: null, audioInt: null,
+  dest: null, start: null, route: null, routeAt: 0, routeAbort: null,
+  map: null, riderMk: null, destMk: null, mapReady: false, follow: true,
+  adminPoll: null, unsub: null, geoAbort: null, geoTimer: null, lastGeoAt: 0
+};
+const rider = { name: '', phone: '', bike: '', code: '' };
+
+/* ---------------- auth ---------------- */
+window.login = () => {
+  const u = $('username').value.trim().toLowerCase(), p = $('password').value;
+  if (u === 'rider' && p === '1234') { sessionStorage.setItem('cmRiderAuth', '1'); checkAuth(); }
+  else CM.toast('Incorrect username or password', 'err');
+};
+window.logout = () => { stopEngine(); sessionStorage.removeItem('cmRiderAuth'); location.reload(); };
+function checkAuth() {
+  const ok = sessionStorage.getItem('cmRiderAuth') === '1';
+  $('loginScreen').classList.toggle('hide', ok);
+  $('riderContent').classList.toggle('hide', !ok);
+  if (ok) { buildTimeline(); initMap(); pill('netPill', navigator.onLine ? 'Network: online' : 'Network: offline', navigator.onLine ? 'good' : 'warn'); }
+}
+checkAuth();
+
+/* ---------------- UI helpers ---------------- */
+function log(msg) {
+  const b = $('debugLog'); if (!b) return;
+  b.textContent += `\n[${new Date().toLocaleTimeString()}] ${msg}`;
+  b.scrollTop = b.scrollHeight;
+}
+function pill(id, text, state = '') {
+  const el = $(id); if (!el) return;
+  el.className = 'pill ' + state;
+  el.innerHTML = `<i class="fas ${id === 'gpsPill' ? 'fa-location-crosshairs' : id === 'netPill' ? 'fa-wifi' : 'fa-cloud-arrow-up'}"></i> ${text}`;
+}
+function buildTimeline() {
+  $('timeline').innerHTML = CM.STAGES.map((s, i) =>
+    `<div class="tl" data-i="${i}"><i class="fas ${s.icon}"></i><span>${s.label}</span></div>`).join('');
+}
+function setStage(idx) {
+  document.querySelectorAll('#timeline .tl').forEach(el => {
+    const i = +el.dataset.i;
+    el.classList.toggle('done', i < idx);
+    el.classList.toggle('current', i === idx);
+  });
+  $('stageLabel').textContent = CM.STAGES[idx].label;
+}
+function setPct(p) {
+  const v = p == null ? 0 : p;
+  $('pctNum').textContent = v;
+  $('pctBar').style.width = v + '%';
+}
+function toastState(kind, text) {
+  const el = $('liveState');
+  el.className = 'badge ' + (kind === 'live' ? 'badge-live' : kind === 'done' ? 'badge-done' : 'badge-idle');
+  el.innerHTML = `<span class="dot ${kind === 'live' ? 'pulse' : ''}"></span> ${text}`;
+}
+
+/* ---------------- map ---------------- */
+function initMap() {
+  if (S.map || !window.maplibregl) return;
+  S.map = new maplibregl.Map({
+    container: 'map', style: CM.mapStyle(),
+    center: [7.0332, 5.4836], zoom: 13, attributionControl: true
+  });
+  S.map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-left');
+  S.map.on('load', () => { S.mapReady = true; ensureRoute(); });
+  S.map.on('dragstart', () => setFollow(false));
+  document.addEventListener('themechange', () => {
+    S.map.setStyle(CM.mapStyle());
+    S.map.once('style.load', () => { S.mapReady = true; ensureRoute(); });
+  });
+}
+function emptyFC() { return { type: 'FeatureCollection', features: [] }; }
+function ensureRoute() {
+  if (!S.map || !S.mapReady) return;
+  const data = S.route || emptyFC();
+  if (!S.map.getSource('route')) {
+    S.map.addSource('route', { type: 'geojson', data });
+    S.map.addLayer({ id: 'route-glow', type: 'line', source: 'route', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#FFC107', 'line-width': 14, 'line-opacity': .16, 'line-blur': 8 } });
+    S.map.addLayer({ id: 'route-line', type: 'line', source: 'route', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#FFC107', 'line-width': 5, 'line-opacity': .95 } });
+  } else {
+    S.map.getSource('route').setData(data);
+  }
+}
+function setFollow(on) {
+  S.follow = on;
+  $('followBtn').classList.toggle('on', on);
+  if (on && S.lastFix) S.map.easeTo({ center: [S.lastFix.lng, S.lastFix.lat], duration: 500 });
+}
+window.toggleFollow = () => setFollow(!S.follow);
+
+function ensureRiderMarker(lng, lat) {
+  if (S.riderMk) return;
+  const el = document.createElement('div');
+  el.className = 'rider-pin';
+  el.innerHTML = '<span class="ring"></span><span class="core"><i class="fas fa-motorcycle"></i></span>';
+  S.riderMk = new maplibregl.Marker({ element: el }).setLngLat([lng, lat]).addTo(S.map);
+}
+function ensureDestMarker(lng, lat) {
+  if (S.destMk) { S.destMk.setLngLat([lng, lat]); return; }
+  const el = document.createElement('div');
+  el.className = 'dest-pin';
+  el.innerHTML = '<i class="fas fa-flag-checkered"></i>';
+  S.destMk = new maplibregl.Marker({ element: el }).setLngLat([lng, lat]).addTo(S.map);
+}
+function glideRider(lng, lat, heading) {
+  if (!S.map || !S.mapReady) return;
+  ensureRiderMarker(lng, lat);
+  const from = S.riderMk.getLngLat();
+  const a = { lat: from.lat, lng: from.lng }, b = { lat, lng };
+  const jump = CM.dist(a, b);
+  const icon = S.riderMk.getElement().querySelector('.core');
+  if (icon && Number.isFinite(heading)) icon.style.transform = `rotate(${heading}deg)`;
+  if (jump > 300) { S.riderMk.setLngLat([lng, lat]); if (S.follow) S.map.setCenter([lng, lat]); return; }
+  const t0 = performance.now(), dur = Math.min(1000, Math.max(320, jump * 28));
+  function frame(t) {
+    const p = Math.min((t - t0) / dur, 1), e = p * p * (3 - 2 * p);
+    const ilng = a.lng + (b.lng - a.lng) * e, ilat = a.lat + (b.lat - a.lat) * e;
+    S.riderMk.setLngLat([ilng, ilat]);
+    if (S.follow) S.map.setCenter([ilng, ilat]);
+    if (p < 1) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ---------------- geocoding ---------------- */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+async function searchPlaces(q) {
+  const now = Date.now();
+  if (now - S.lastGeoAt < 1100) await sleep(1100 - (now - S.lastGeoAt));
+  S.lastGeoAt = Date.now();
+  S.geoAbort?.abort(); S.geoAbort = new AbortController();
+  const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=6&lang=en&lat=5.4836&lon=7.0332`;
+  const res = await fetch(url, { signal: S.geoAbort.signal });
+  if (!res.ok) throw new Error('Search unavailable');
+  const data = await res.json();
+  return (data.features || []).map(f => {
+    const p = f.properties || {};
+    const parts = [p.name, p.street, p.district, p.city, p.state].filter(Boolean);
+    return { label: parts[0] || 'Unnamed', detail: parts.slice(1).join(', '), lat: f.geometry.coordinates[1], lng: f.geometry.coordinates[0] };
+  });
+}
+$('dropoffAddress').addEventListener('input', e => {
+  clearTimeout(S.geoTimer);
+  const q = e.target.value.trim();
+  if (q.length < 3) { $('geoResults').classList.add('hide'); return; }
+  S.geoTimer = setTimeout(async () => {
+    try {
+      const list = await searchPlaces(q);
+      if (!list.length) { $('geoResults').classList.add('hide'); return; }
+      $('geoResults').innerHTML = list.map((r, i) =>
+        `<div class="geo-item" data-i="${i}"><i class="fas fa-location-dot"></i><div><b>${esc(r.label)}</b><span>${esc(r.detail)}</span></div></div>`).join('');
+      $('geoResults').classList.remove('hide');
+      $('geoResults').querySelectorAll('.geo-item').forEach(el => {
+        el.onclick = () => {
+          const r = list[+el.dataset.i];
+          $('geoResults').classList.add('hide');
+          $('dropoffAddress').value = r.label + (r.detail ? ', ' + r.detail : '');
+          setDestination(r.lat, r.lng, $('dropoffAddress').value);
+        };
+      });
+    } catch (err) { if (err.name !== 'AbortError') log('Geocoder: ' + err.message); }
+  }, 480);
+});
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+function setDestination(lat, lng, label) {
+  S.dest = { lat, lng };
+  $('destStatus').innerHTML = `<i class="fas fa-check-circle" style="color:var(--green)"></i> Pinned: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+  if (S.map && S.mapReady) {
+    ensureDestMarker(lng, lat);
+    if (!S.follow) S.map.fitBounds([[lng, lat], [lng, lat]].length ? new maplibregl.LngLatBounds([lng, lat], [lng, lat]) : null, { padding: 80, maxZoom: 15 });
+  }
+  if (S.active) pushDestUpdate(label);
+  updateRoute(true);
+}
+let destPushAt = 0;
+async function pushDestUpdate(address) {
+  if (!S.active || !S.orderId) return;
+  if (Date.now() - destPushAt < 1500) return;
+  destPushAt = Date.now();
+  try {
+    await updateDoc(orderRef(S.orderId), { destLat: S.dest.lat, destLng: S.dest.lng, destAddress: address || $('dropoffAddress').value, lastUpdated: serverTimestamp() });
+    log('Destination updated on customer map');
+    CM.toast('Destination updated for the customer', 'ok');
+  } catch (e) { log('Dest update failed: ' + e.message); }
+}
+
+window.useCurrentLocationAsDest = () => {
+  if (!navigator.geolocation) return CM.toast('GPS unavailable', 'err');
+  $('destStatus').textContent = 'Getting current GPS…';
+  navigator.geolocation.getCurrentPosition(p => {
+    $('dropoffAddress').value = 'Current GPS location';
+    setDestination(p.coords.latitude, p.coords.longitude, 'Current GPS location');
+  }, e => { $('destStatus').textContent = 'GPS failed: ' + e.message; }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+};
+
+/* ---------------- routing ---------------- */
+async function updateRoute(force = false) {
+  if (!S.lastFix || !S.dest) return;
+  if (!force && Date.now() - S.routeAt < 15000) return;
+  const d = CM.dist(S.lastFix, S.dest);
+  if (d < 25) { S.route = emptyFC(); ensureRoute(); $('mDist').textContent = '0 m'; $('mEta').textContent = '0 min'; return; }
+  S.routeAt = Date.now();
+  S.routeAbort?.abort(); S.routeAbort = new AbortController();
+  try {
+    const url = `https://router.project-osrm.org/route/v1/driving/${S.lastFix.lng},${S.lastFix.lat};${S.dest.lng},${S.dest.lat}?overview=full&geometries=geojson`;
+    const res = await fetch(url, { signal: S.routeAbort.signal });
+    if (!res.ok) throw new Error('OSRM');
+    const data = await res.json();
+    const r = data.routes?.[0]; if (!r) throw new Error('No route');
+    S.route = { type: 'FeatureCollection', features: [{ type: 'Feature', properties: {}, geometry: r.geometry }] };
+    ensureRoute();
+    $('mDist').textContent = r.distance >= 1000 ? (r.distance / 1000).toFixed(1) + ' km' : Math.round(r.distance) + ' m';
+    $('mEta').textContent = Math.max(1, Math.round(r.duration / 60)) + ' min';
+  } catch (e) {
+    if (e.name === 'AbortError') return;
+    const km = d / 1000, mins = Math.max(1, Math.round(km / 25 * 60));
+    $('mDist').textContent = km >= 1 ? km.toFixed(1) + ' km' : Math.round(d) + ' m';
+    $('mEta').textContent = mins + ' min';
+  }
+}
+
+/* ---------------- telemetry engine ---------------- */
+function getQueue() { try { return JSON.parse(localStorage.getItem(QK) || '[]'); } catch { return []; } }
+function saveQueue(q) { localStorage.setItem(QK, JSON.stringify(q.slice(-CFG.queueMax))); }
+function enqueue(p) { const q = getQueue(); q.push({ ...p, orderId: S.orderId }); saveQueue(q); pill('syncPill', 'Sync: queued ' + q.length, 'warn'); }
+
+let writeChain = Promise.resolve();
+async function write(payload, oid = S.orderId) {
+  const body = { ...payload }; delete body.orderId;
+  const task = writeChain.then(() => setDoc(orderRef(oid), body, { merge: true }));
+  writeChain = task.catch(() => {});
+  try { await task; pill('syncPill', 'Sync: live', 'good'); return true; }
+  catch (e) { log('Write queued: ' + e.message); return false; }
+}
+async function flushQueue() {
+  if (!S.active || !navigator.onLine) return;
+  while (navigator.onLine && S.active) {
+    const q = getQueue();
+    const i = q.findIndex(x => x.orderId === S.orderId);
+    if (i < 0) break;
+    if (!(await write(q[i], S.orderId))) break;
+    q.splice(i, 1); saveQueue(q);
+  }
+  const n = getQueue().filter(x => x.orderId === S.orderId).length;
+  pill('syncPill', n ? 'Sync: queued ' + n : 'Sync: live', n ? 'warn' : 'good');
+}
+
+async function sendFix(fix, force = false) {
+  const now = Date.now();
+  const moved = S.lastSentFix ? CM.dist(S.lastSentFix, fix) : 999;
+  const interval = moved > 6 ? CFG.moveMs : CFG.stillMs;
+  if (!force && now - S.lastSent < interval) return;
+  S.lastSent = now; S.lastSentFix = fix; S.seq++;
+  const payload = {
+    lat: fix.lat, lng: fix.lng, heading: fix.heading, accuracy: fix.accuracy, speed: fix.speed,
+    locationAt: new Date(now), sequence: S.seq, trackingState: 'live',
+    lastUpdated: serverTimestamp(), heartbeatAt: serverTimestamp()
+  };
+  if (!navigator.onLine || !(await write(payload))) {
+    enqueue({ ...payload, lastUpdated: new Date(now), heartbeatAt: new Date(now) });
+  }
+}
+async function heartbeat() {
+  if (!S.active || Date.now() - S.lastHb < CFG.hbMs) return;
+  S.lastHb = Date.now();
+  const p = { heartbeatAt: serverTimestamp(), trackingState: navigator.onLine ? 'live' : 'offline', lastUpdated: serverTimestamp() };
+  if (!navigator.onLine || !(await write(p))) enqueue({ ...p, heartbeatAt: new Date(), lastUpdated: new Date() });
+}
+
+function acceptPosition(pos) {
+  const c = pos.coords;
+  const fix = {
+    lat: c.latitude, lng: c.longitude, accuracy: c.accuracy,
+    speed: Number.isFinite(c.speed) ? c.speed : 0,
+    heading: Number.isFinite(c.heading) ? c.heading : null,
+    at: pos.timestamp || Date.now()
+  };
+  if (!isFinite(fix.lat) || !isFinite(fix.lng)) return;
+  if (Date.now() - fix.at > 30000) return;
+  if (!isFinite(fix.accuracy) || fix.accuracy > CFG.maxAcc) {
+    pill('gpsPill', 'GPS: weak ' + Math.round(fix.accuracy || 0) + 'm', 'warn'); return;
+  }
+  if (S.lastFix) {
+    const dt = Math.max((fix.at - S.lastFix.at) / 1000, .5);
+    const d = CM.dist(S.lastFix, fix);
+    if (d / dt > CFG.maxSpeed && d > (S.lastFix.accuracy + fix.accuracy + 10)) {
+      log('GPS jump rejected'); return;
+    }
+    fix.heading = fix.heading ?? (d > 3 ? CM.bearing(S.lastFix, fix) : S.lastFix.heading);
+  } else fix.heading = fix.heading ?? 0;
+
+  S.lastFix = fix;
+  pill('gpsPill', 'GPS: ' + Math.round(fix.accuracy) + 'm', 'good');
+  $('mSpeed').textContent = Math.round((fix.speed || 0) * 3.6) + ' km/h';
+  $('mAcc').textContent = '±' + Math.round(fix.accuracy) + 'm';
+
+  glideRider(fix.lng, fix.lat, fix.heading);
+  if (S.dest) {
+    const pct = CM.progress({ lat: fix.lat, lng: fix.lng }, S.start, S.dest);
+    setPct(pct);
+    setStage(CM.stage({ status: 'active', riderName: '1' }, true, pct));
+    updateRoute();
+  }
+  sendFix(fix, !S.lastSentFix).catch(e => log('Telemetry: ' + e.message));
+  heartbeat();
+}
+
+function startWatch() {
+  if (!S.active) return;
+  if (S.watchId !== null) { navigator.geolocation.clearWatch(S.watchId); S.watchId = null; }
+  S.watchId = navigator.geolocation.watchPosition(acceptPosition, err => {
+    log(`GPS error ${err.code}: ${err.message}`);
+    pill('gpsPill', err.code === 1 ? 'GPS: denied' : 'GPS: recovering', 'warn');
+    if (err.code === 2 || err.code === 3) scheduleRestart();
+  }, { enableHighAccuracy: true, maximumAge: 3000, timeout: 25000 });
+}
+function scheduleRestart() {
+  if (S.restart || !S.active) return;
+  S.restart = setTimeout(() => { S.restart = null; startWatch(); }, 4000);
+}
+async function wakeLock() {
+  try { if ('wakeLock' in navigator) S.wl = await navigator.wakeLock.request('screen'); } catch { }
+}
+function audioKeepAlive() {
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    S.audio = S.audio || new AC();
+    if (S.audio.state === 'suspended') S.audio.resume();
+    clearInterval(S.audioInt);
+    S.audioInt = setInterval(() => { if (S.active && S.audio?.state === 'suspended') S.audio.resume(); }, 15000);
+  } catch { }
+}
+function stopEngine() {
+  S.active = false;
+  if (S.watchId !== null) { navigator.geolocation.clearWatch(S.watchId); S.watchId = null; }
+  clearTimeout(S.restart); clearInterval(S.audioInt); clearInterval(S.adminPoll);
+  if (S.unsub) { S.unsub(); S.unsub = null; }
+  if (S.audio) { S.audio.close().catch(() => { }); S.audio = null; }
+  if (S.wl) { S.wl.release().catch(() => { }); S.wl = null; }
+  toastState('idle', 'Stopped');
+}
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState !== 'visible' || !S.active) return;
+  await wakeLock();
+  if (S.lastFix) acceptPosition({ coords: { latitude: S.lastFix.lat, longitude: S.lastFix.lng, accuracy: S.lastFix.accuracy, speed: 0, heading: S.lastFix.heading }, timestamp: Date.now() });
+  startWatch();
+  flushQueue();
+});
+window.addEventListener('online', () => { pill('netPill', 'Network: online', 'good'); flushQueue(); });
+window.addEventListener('offline', () => pill('netPill', 'Network: offline', 'warn'));
+setInterval(() => {
+  if (!S.active) return;
+  heartbeat();
+  if (navigator.onLine) flushQueue();
+  if (S.lastFix && Date.now() - S.lastFix.at > 45000) scheduleRestart();
+}, CFG.hbMs);
+window.addEventListener('beforeunload', e => { if (S.active) { e.preventDefault(); e.returnValue = ''; } });
+
+/* ---------------- start / complete ---------------- */
+window.generateOrderId = () => { $('orderId').value = 'CH-' + Math.floor(1000 + Math.random() * 9000); };
+
+window.startTracking = async () => {
+  if (S.active) return;
+  const id = $('orderId').value.trim().toUpperCase();
+  const senderName = $('senderName').value.trim();
+  const senderPhone = $('senderPhone').value.trim();
+  const receiverName = $('receiverName').value.trim();
+  const receiverPhone = $('receiverPhone').value.trim();
+  const packageType = $('packageType').value;
+  const packageNote = $('packageNote').value.trim();
+  const priority = $('priority').value;
+  const fee = Number($('fee').value) || 0;
+  const name = $('riderName').value.trim();
+  const phone = $('riderPhone').value.trim();
+  const bike = $('riderBike').value.trim();
+
+  if (!id || !senderName || !senderPhone || !receiverName || !receiverPhone || !name || !phone || !bike) {
+    return CM.toast('Complete sender, receiver, package and rider fields', 'err');
+  }
+  if (!/^[A-Z0-9-]{4,40}$/.test(id)) return CM.toast('Order ID must be 4–40 letters/numbers/hyphens', 'err');
+  if (!S.dest) return CM.toast('Search and pin the drop-off destination first', 'err');
+  if (!window.isSecureContext) return CM.toast('Tracking requires HTTPS', 'err');
+  if (!navigator.geolocation) return CM.toast('This browser does not support GPS', 'err');
+
+  const btn = $('startBtn'); btn.disabled = true;
+  $('setupState').textContent = 'Checking GPS…';
+
+  let first;
+  try {
+    first = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, maximumAge: 0, timeout: 25000 }));
+    if (!isFinite(first.coords.accuracy) || first.coords.accuracy > CFG.maxAcc) {
+      throw new Error('Weak GPS accuracy (' + Math.round(first.coords.accuracy || 0) + 'm). Move to an open area.');
+    }
+  } catch (e) {
+    btn.disabled = false; $('setupState').textContent = 'Draft';
+    return CM.toast('Could not get a reliable GPS fix: ' + (e.message || 'permission denied'), 'err');
+  }
+
+  S.orderId = id;
+  S.start = { lat: first.coords.latitude, lng: first.coords.longitude };
+  rider.name = name; rider.phone = phone; rider.bike = bike;
+  rider.code = String(Math.floor(1000 + Math.random() * 9000));
+  S.seq = 0; S.lastFix = null; S.lastSentFix = null; S.lastSent = 0; S.lastHb = 0;
+
+  ['orderId', 'senderName', 'senderPhone', 'receiverName', 'receiverPhone', 'packageType', 'packageNote', 'priority', 'fee', 'dropoffAddress', 'riderName', 'riderPhone', 'riderBike']
+    .forEach(f => { const el = $(f); if (el) el.disabled = true; });
+
+  try {
+    const prev = await getDoc(orderRef(id));
+    const prevSeq = prev.exists() && Number.isFinite(Number(prev.data().sequence)) ? Number(prev.data().sequence) : 0;
+    S.seq = prevSeq;
+    await setDoc(orderRef(id), {
+      riderName: name, riderPhone: phone, riderBike: bike, deliveryCode: rider.code,
+      senderName, senderPhone, receiverName, receiverPhone,
+      packageType, packageNote, priority, fee,
+      destAddress: $('dropoffAddress').value.trim(),
+      destLat: S.dest.lat, destLng: S.dest.lng,
+      startLat: S.start.lat, startLng: S.start.lng,
+      status: 'active', trackingState: 'starting',
+      lat: null, lng: null, accuracy: null, heading: null, speed: null, locationAt: null,
+      sequence: S.seq, createdAt: serverTimestamp(), lastUpdated: serverTimestamp()
+    }, { merge: true });
+  } catch (e) {
+    btn.disabled = false; $('setupState').textContent = 'Draft';
+    ['orderId', 'senderName', 'senderPhone', 'receiverName', 'receiverPhone', 'packageType', 'packageNote', 'priority', 'fee', 'dropoffAddress', 'riderName', 'riderPhone', 'riderBike']
+      .forEach(f => { const el = $(f); if (el) el.disabled = false; });
+    return CM.toast('Firestore init failed: ' + e.message, 'err');
+  }
+
+  S.active = true;
+  $('completeCard').classList.remove('hide');
+  $('setupState').textContent = 'Active';
+  toastState('live', 'Live');
+  $('startBtn').innerHTML = '<i class="fas fa-satellite-dish"></i> Tracking in progress';
+  const link = new URL('track.html', location.href); link.searchParams.set('id', id);
+  $('shareLink').value = link.href;
+
+  await wakeLock(); audioKeepAlive(); startWatch();
+  acceptPosition(first);
+  updateRoute(true);
+  CM.toast('Tracking started. Keep this page open.', 'ok');
+  log('Engine started for ' + id);
+
+  // admin force-done / cancel detection (cheap polling)
+  S.adminPoll = setInterval(async () => {
+    if (!S.active) return;
+    try {
+      const snap = await getDoc(orderRef(S.orderId));
+      const st = snap.data()?.status;
+      if (st === 'delivered' || st === 'cancelled') finishByAdmin(st);
+    } catch { }
+  }, 30000);
+};
+
+function finishByAdmin(st) {
+  stopEngine();
+  toastState(st === 'delivered' ? 'done' : 'idle', st === 'delivered' ? 'Delivered' : 'Cancelled');
+  $('completeCard').classList.add('hide');
+  $('stageLabel').textContent = st === 'delivered' ? 'Delivered' : 'Cancelled';
+  if (st === 'delivered') setPct(100), setStage(5);
+  CM.toast('Admin marked this order ' + st, 'ok');
+}
+
+window.confirmDelivery = async () => {
+  const code = $('verifyCode').value.trim();
+  if (!/^\d{4}$/.test(code)) return CM.toast('Enter the 4-digit PIN', 'err');
+  $('confirmBtn').disabled = true;
+  try {
+    const snap = await getDoc(orderRef(S.orderId));
+    if (snap.exists() && String(snap.data().deliveryCode) === code) {
+      await updateDoc(orderRef(S.orderId), { status: 'delivered', trackingState: 'completed', deliveredAt: serverTimestamp(), lastUpdated: serverTimestamp() });
+      setPct(100); setStage(5);
+      CM.toast('Delivery completed', 'ok');
+      stopEngine();
+      setTimeout(() => location.reload(), 1500);
+    } else {
+      $('verifyStatus').innerHTML = '<span style="color:var(--red)">Incorrect PIN</span>';
+    }
+  } catch (e) { $('verifyStatus').textContent = 'Failed: ' + e.message; }
+  finally { $('confirmBtn').disabled = false; }
+};
+
+window.copyTrackingLink = () => {
+  if (!$('shareLink').value) return CM.toast('Start tracking first', 'err');
+  CM.copy($('shareLink').value, 'Customer link copied');
+};
+window.shareWhatsApp = () => {
+  if (!$('shareLink').value) return CM.toast('Start tracking first', 'err');
+  const msg = `Hi! Track your CharMary delivery live: ${$('shareLink').value}`;
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+};
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => { });
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "name": "CharMary Courier & Logistics",
+  "short_name": "CharMary",
+  "description": "Fast, reliable delivery in Owerri with live rider tracking.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0A0A0A",
+  "theme_color": "#FFC107",
+  "icons": [
+    { "src": "images/logo.jpg", "sizes": "192x192", "type": "image/jpeg", "purpose": "any" },
+    { "src": "images/logo.jpg", "sizes": "512x512", "type": "image/jpeg", "purpose": "any" },
+    { "src": "images/logo.jpg", "sizes": "512x512", "type": "image/jpeg", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Track an order", "url": "./index.html#track", "icons": [{ "src": "images/logo.jpg", "sizes": "192x192" }] },
+    { "name": "Rider portal", "url": "./rider.html", "icons": [{ "src": "images/logo.jpg", "sizes": "192x192" }] },
+    { "name": "Admin console", "url": "./admin.html", "icons": [{ "src": "images/logo.jpg", "sizes": "192x192" }] }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "name": "CharMary Courier & Logistics",
+  "description": "Real-time live delivery tracking, Google Maps global address search, offline-cached vector tiles, and Firebase fleet dispatch.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

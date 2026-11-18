@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Track Your CharMary Delivery</title>
+<meta name="theme-color" content="#FFC107">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="images/logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<link rel="stylesheet" href="shared/theme.css">
+<style>
+  body{height:100dvh;overflow:hidden}
+  .shell{display:flex;flex-direction:column;height:100dvh}
+  .map-stage{position:relative;flex:1 1 42%;min-height:220px;background:var(--surface-2)}
+  #map{position:absolute;inset:0}
+  .top-bar{position:absolute;z-index:6;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;
+    gap:.6rem;padding:.7rem .8rem;background:linear-gradient(to bottom,color-mix(in srgb,var(--bg) 85%,transparent),transparent)}
+  .order-chip{display:inline-flex;align-items:center;gap:.5rem;background:var(--glass);backdrop-filter:blur(14px);
+    border:1px solid var(--border-strong);border-radius:999px;padding:.45rem .8rem;font-size:.78rem;font-weight:800}
+  .panel{flex:0 0 auto;max-height:58dvh;overflow-y:auto;background:var(--surface);border-top:1px solid var(--border-strong);
+    border-radius:24px 24px 0 0;padding:1rem 1rem calc(1.4rem + env(safe-area-inset-bottom));
+    box-shadow:0 -20px 50px rgba(0,0,0,.35);position:relative;z-index:7;animation:panelUp .55s var(--ease)}
+  @keyframes panelUp{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+  @media(min-width:900px){
+    .shell{flex-direction:row}
+    .panel{order:-1;width:430px;max-height:none;height:100dvh;border-top:0;border-right:1px solid var(--border-strong);
+      border-radius:0;padding:1.2rem;box-shadow:none;animation:none}
+    .map-stage{flex:1}
+  }
+  .head-row{display:flex;justify-content:space-between;align-items:flex-start;gap:.8rem;margin-bottom:.7rem}
+  .big-pct{font-family:var(--font-display);font-size:2.7rem;font-weight:900;line-height:1;letter-spacing:-.05em}
+  .big-pct small{font-size:.9rem;color:var(--muted);font-weight:700}
+  .journey{margin:.6rem 0 1rem}
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+  .info-cell{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.65rem .75rem}
+  .info-cell span{display:block;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:800}
+  .info-cell b{font-size:.85rem;display:block;margin-top:.15rem;word-break:break-word}
+  .person{display:flex;align-items:center;gap:.65rem;padding:.6rem 0}
+  .avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-family:var(--font-display);
+    background:linear-gradient(135deg,var(--accent),#FFDD73);color:#000;flex:none}
+  .person .meta{flex:1;min-width:0}
+  .person b{display:block;font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .person span{font-size:.72rem;color:var(--muted)}
+  .divider{height:1px;background:var(--border);margin:.7rem 0}
+  .route-line{display:flex;gap:.7rem}
+  .route-dots{display:flex;flex-direction:column;align-items:center;padding-top:.2rem}
+  .route-dots i:first-child{color:var(--accent);font-size:.8rem}
+  .route-dots .bar{width:2px;flex:1;min-height:26px;background:repeating-linear-gradient(var(--border-strong) 0 4px,transparent 4px 8px)}
+  .route-dots i:last-child{color:var(--green);font-size:.8rem}
+  .route-text b{display:block;font-size:.82rem}
+  .route-text span{font-size:.72rem;color:var(--muted);display:block;margin-bottom:.4rem}
+  .section-label{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:800;margin:.9rem 0 .5rem}
+  #overlay{position:fixed;inset:0;z-index:900;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(12px);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.6rem;gap:.8rem}
+  #overlay h2{font-size:1.3rem}
+  .done-check{width:86px;height:86px;border-radius:50%;background:var(--ok-bg);display:grid;place-items:center;font-size:2.4rem;color:var(--green);animation:pop .6s var(--ease)}
+  @keyframes pop{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+  .map-fab{position:absolute;right:12px;bottom:12px;z-index:5}
+  .attrib{position:absolute;left:8px;bottom:6px;z-index:4;font-size:9px;color:var(--muted);background:var(--glass);padding:2px 6px;border-radius:6px}
+  .hide{display:none!important}
+</style>
+</head>
+<body>
+
+<div id="overlay">
+  <div class="delivery-loader">
+    <div class="dl-road"><i class="fas fa-motorcycle dl-rider"></i></div>
+    <div class="dl-label">Locating your rider…</div>
+  </div>
+  <h2 id="ovTitle">Connecting to your delivery</h2>
+  <p id="ovMsg" class="small muted" style="max-width:320px">Fetching live telemetry from the rider.</p>
+</div>
+
+<div class="shell">
+  <div class="map-stage">
+    <div id="map"></div>
+    <div class="top-bar">
+      <div class="order-chip"><span class="dot pulse" style="color:var(--green)" id="liveDot"></span><span id="orderChip">ORDER #----</span></div>
+      <div style="display:flex;gap:.5rem">
+        <button class="icon-btn" onclick="CM.toggle(event)" aria-label="Toggle theme"><i class="fas fa-sun" data-theme-icon></i></button>
+        <a class="icon-btn" href="index.html" aria-label="Home"><i class="fas fa-house"></i></a>
+      </div>
+    </div>
+    <button class="map-fab on" id="followBtn" onclick="toggleFollow()" title="Follow rider"><i class="fas fa-location-arrow"></i></button>
+    <div class="attrib">© OpenStreetMap · OpenFreeMap</div>
+  </div>
+
+  <aside class="panel" id="panel">
+    <!-- skeleton -->
+    <div id="skeleton">
+      <div class="skeleton skel-line" style="width:42%;height:16px"></div>
+      <div class="skeleton skel-line" style="width:70%;height:44px;margin-top:.8rem"></div>
+      <div class="skeleton skel-line" style="width:100%;height:10px"></div>
+      <div class="skeleton skel-line" style="width:100%;height:58px;margin-top:1rem"></div>
+      <div class="skeleton skel-line" style="width:100%;height:90px"></div>
+      <div class="skeleton skel-line" style="width:100%;height:70px"></div>
+    </div>
+
+    <!-- live content -->
+    <div id="content" class="hide">
+      <div class="head-row">
+        <div>
+          <div class="badge badge-live" id="stateBadge" style="margin-bottom:.4rem"><span class="dot pulse"></span> Live</div>
+          <div class="big-pct"><span id="pctNum">0</span><small>%</small></div>
+          <div class="small" id="stageText" style="font-weight:800;margin-top:.2rem">—</div>
+        </div>
+        <div style="text-align:right">
+          <div class="tiny faint" style="text-transform:uppercase;letter-spacing:.1em">ETA</div>
+          <div style="font-family:var(--font-display);font-size:1.5rem;font-weight:900" id="etaBig">—</div>
+          <div class="tiny muted" id="distBig">—</div>
+        </div>
+      </div>
+
+      <div class="progress"><div class="progress-fill" id="pctBar"></div></div>
+      <div class="timeline" id="timeline"></div>
+
+      <div class="journey">
+        <div class="section-label">Rider</div>
+        <div class="card flat" style="padding:.8rem">
+          <div class="person" style="padding:0">
+            <div class="avatar" id="riderAvatar">?</div>
+            <div class="meta"><b id="rName">Assigned rider</b><span id="rBike">Bike: —</span></div>
+            <a class="icon-btn" id="callBtn" href="#" style="width:40px;height:40px;color:var(--green)" aria-label="Call rider"><i class="fas fa-phone"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-label">Journey</div>
+      <div class="card flat" style="padding:.85rem">
+        <div class="route-line">
+          <div class="route-dots"><i class="fas fa-circle"></i><span class="bar"></span><i class="fas fa-location-dot"></i></div>
+          <div class="route-text" style="flex:1">
+            <b id="fromName">Sender</b><span id="fromPhone">—</span>
+            <b id="toName">Receiver</b><span id="toAddr">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-grid" style="margin-top:.6rem">
+        <div class="info-cell"><span>Package</span><b id="pkgType">—</b></div>
+        <div class="info-cell"><span>Priority</span><b id="pkgPriority">Standard</b></div>
+        <div class="info-cell"><span>Fee</span><b id="pkgFee">—</b></div>
+        <div class="info-cell"><span>Updated</span><b id="lastUpd">—</b></div>
+      </div>
+      <div id="pkgNoteWrap" class="info-cell hide" style="margin-top:.6rem"><span>Note</span><b id="pkgNote">—</b></div>
+
+      <div class="section-label">Delivery PIN</div>
+      <div class="pin-box">
+        <div class="tiny muted" style="margin-bottom:.25rem">Share this with the rider on arrival</div>
+        <div class="pin-code" id="deliveryPin">----</div>
+      </div>
+
+      <p class="tiny faint" style="margin-top:.8rem;text-align:center" id="freshness">Waiting for location…</p>
+    </div>
+  </aside>
+</div>
+
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script type="module">
+import { orderRef, onSnapshot } from './shared/firebase.js';
+
+const $ = id => document.getElementById(id);
+const params = new URLSearchParams(location.search);
+const orderId = (params.get('id') || '').trim().toUpperCase();
+
+if (!orderId || !/^[A-Z0-9-]{4,40}$/.test(orderId)) {
+  $('overlay').innerHTML = `<i class="fas fa-link-slash" style="font-size:2rem;color:var(--red)"></i>
+    <h2>Invalid Tracking Link</h2><p class="small muted">No valid order ID was provided.</p>
+    <a class="btn btn-primary" href="index.html">Back to homepage</a>`;
+  throw new Error('Invalid order id');
+}
+
+let map, mapReady = false, riderMk = null, destMk = null, trailSrc = null;
+let follow = true, routeData = { type: 'FeatureCollection', features: [] }, routeAt = 0, routeAbort = null;
+let lastPos = null, lastSeq = -1, lastFixAt = 0, firstFit = true, arrivalCount = 0, done = false;
+const trail = [];
+const MAX_STALE = 60000;
+
+if (!window.maplibregl) {
+  $('ovTitle').textContent = 'Map unavailable';
+  $('ovMsg').textContent = 'The map library could not load. Check your connection and refresh.';
+  throw new Error('MapLibre missing');
+}
+
+map = new maplibregl.Map({
+  container: 'map', style: CM.mapStyle(),
+  center: [7.0332, 5.4836], zoom: 13, attributionControl: false
+});
+map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-left');
+map.on('load', () => { mapReady = true; drawRoute(); drawTrail(); });
+map.on('dragstart', () => setFollow(false));
+document.addEventListener('themechange', () => {
+  map.setStyle(CM.mapStyle());
+  map.once('style.load', () => { mapReady = true; drawRoute(); drawTrail(); });
+});
+
+function emptyFC() { return { type: 'FeatureCollection', features: [] }; }
+function drawRoute() {
+  if (!mapReady) return;
+  if (!map.getSource('route')) {
+    map.addSource('route', { type: 'geojson', data: routeData });
+    map.addLayer({ id: 'route-glow', type: 'line', source: 'route', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#FFC107', 'line-width': 14, 'line-opacity': .16, 'line-blur': 8 } });
+    map.addLayer({ id: 'route-line', type: 'line', source: 'route', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#FFC107', 'line-width': 5, 'line-opacity': .95 } });
+  } else map.getSource('route').setData(routeData);
+}
+function drawTrail() {
+  if (!mapReady) return;
+  const fc = { type: 'FeatureCollection', features: trail.length > 1 ? [{ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: trail } }] : [] };
+  if (!map.getSource('trail')) {
+    map.addSource('trail', { type: 'geojson', data: fc });
+    map.addLayer({ id: 'trail-line', type: 'line', source: 'trail', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#3B82F6', 'line-width': 3, 'line-opacity': .55, 'line-dasharray': [2, 2] } });
+  } else map.getSource('trail').setData(fc);
+}
+
+function setFollow(on) {
+  follow = on;
+  $('followBtn').classList.toggle('on', on);
+  if (on && lastPos) map.easeTo({ center: [lastPos.lng, lastPos.lat], duration: 500 });
+}
+window.toggleFollow = () => setFollow(!follow);
+
+function ensureRiderMarker(lng, lat) {
+  if (riderMk) return;
+  const el = document.createElement('div');
+  el.className = 'rider-pin';
+  el.innerHTML = '<span class="ring"></span><span class="core"><i class="fas fa-motorcycle"></i></span>';
+  riderMk = new maplibregl.Marker({ element: el }).setLngLat([lng, lat]).addTo(map);
+}
+function ensureDestMarker(lng, lat) {
+  if (destMk) { destMk.setLngLat([lng, lat]); return; }
+  const el = document.createElement('div');
+  el.className = 'dest-pin';
+  el.innerHTML = '<i class="fas fa-flag-checkered"></i>';
+  destMk = new maplibregl.Marker({ element: el }).setLngLat([lng, lat]).addTo(map);
+}
+function glide(lng, lat, heading) {
+  if (!mapReady) return;
+  ensureRiderMarker(lng, lat);
+  const from = riderMk.getLngLat();
+  const a = { lat: from.lat, lng: from.lng }, b = { lat, lng };
+  const jump = CM.dist(a, b);
+  const icon = riderMk.getElement().querySelector('.core');
+  if (icon && Number.isFinite(heading)) icon.style.transform = `rotate(${heading}deg)`;
+  if (jump > 300) { riderMk.setLngLat([lng, lat]); if (follow) map.setCenter([lng, lat]); return; }
+  const t0 = performance.now(), dur = Math.min(1100, Math.max(320, jump * 28));
+  function frame(t) {
+    const p = Math.min((t - t0) / dur, 1), e = p * p * (3 - 2 * p);
+    const ilng = a.lng + (b.lng - a.lng) * e, ilat = a.lat + (b.lat - a.lat) * e;
+    riderMk.setLngLat([ilng, ilat]);
+    if (follow) map.setCenter([ilng, ilat]);
+    if (p < 1) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+function valid(lat, lng) { return Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180; }
+
+async function updateRoute(rider, dest) {
+  const straight = CM.dist(rider, dest);
+  if (straight < 25) {
+    routeData = emptyFC(); drawRoute();
+    $('etaBig').textContent = '0 min'; $('distBig').textContent = 'Arrived';
+    return;
+  }
+  if (Date.now() - routeAt < 15000) return;
+  routeAt = Date.now();
+  routeAbort?.abort(); routeAbort = new AbortController();
+  try {
+    const url = `https://router.project-osrm.org/route/v1/driving/${rider.lng},${rider.lat};${dest.lng},${dest.lat}?overview=full&geometries=geojson`;
+    const res = await fetch(url, { signal: routeAbort.signal });
+    if (!res.ok) throw new Error('route');
+    const data = await res.json();
+    const r = data.routes?.[0]; if (!r) throw new Error('no route');
+    routeData = { type: 'FeatureCollection', features: [{ type: 'Feature', properties: {}, geometry: r.geometry }] };
+    drawRoute();
+    $('etaBig').textContent = Math.max(1, Math.round(r.duration / 60)) + ' min';
+    $('distBig').textContent = r.distance >= 1000 ? (r.distance / 1000).toFixed(1) + ' km away' : Math.round(r.distance) + ' m away';
+  } catch (e) {
+    if (e.name === 'AbortError') return;
+    const km = straight / 1000;
+    $('etaBig').textContent = Math.max(1, Math.round(km / 25 * 60)) + ' min';
+    $('distBig').textContent = km >= 1 ? km.toFixed(1) + ' km away' : Math.round(straight) + ' m away';
+  }
+}
+
+function buildTimeline() {
+  $('timeline').innerHTML = CM.STAGES.map((s, i) =>
+    `<div class="tl" data-i="${i}"><i class="fas ${s.icon}"></i><span>${s.label}</span></div>`).join('');
+}
+function setStage(idx) {
+  document.querySelectorAll('#timeline .tl').forEach(el => {
+    const i = +el.dataset.i;
+    el.classList.toggle('done', i < idx);
+    el.classList.toggle('current', i === idx);
+  });
+  $('stageText').textContent = CM.STAGES[idx].label;
+}
+buildTimeline();
+
+function initials(name) {
+  return (name || '?').split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+}
+function fmtPhone(p) {
+  const s = String(p || '').replace(/[^\d+]/g, '');
+  return s ? s : '—';
+}
+
+function showTerminal(status) {
+  if (done) return; done = true;
+  const delivered = status === 'delivered';
+  $('overlay').classList.remove('hide');
+  $('overlay').innerHTML = delivered
+    ? `<div class="done-check"><i class="fas fa-check"></i></div>
+       <h2>Delivered successfully</h2>
+       <p class="small muted">Order ${orderId} has been completed. Thank you for choosing CharMary.</p>
+       <a class="btn btn-primary" href="index.html">Book another delivery</a>`
+    : `<i class="fas fa-circle-xmark" style="font-size:2.4rem;color:var(--red)"></i>
+       <h2>Delivery cancelled</h2>
+       <p class="small muted">Order ${orderId} was cancelled.</p>
+       <a class="btn btn-primary" href="index.html">Back to homepage</a>`;
+}
+
+function render(data) {
+  $('skeleton').classList.add('hide');
+  $('content').classList.remove('hide');
+  $('orderChip').textContent = 'ORDER #' + orderId;
+
+  const lat = data.lat == null ? NaN : Number(data.lat);
+  const lng = data.lng == null ? NaN : Number(data.lng);
+  const dLat = Number(data.destLat), dLng = Number(data.destLng);
+  const sLat = Number(data.startLat), sLng = Number(data.startLng);
+
+  $('rName').textContent = data.riderName || 'Assigned rider';
+  $('rBike').textContent = 'Bike: ' + (data.riderBike || '—');
+  $('riderAvatar').textContent = initials(data.riderName);
+  const phone = fmtPhone(data.riderPhone);
+  $('callBtn').href = phone !== '—' ? 'tel:' + phone : '#';
+
+  $('fromName').textContent = data.senderName || 'Sender';
+  $('fromPhone').textContent = fmtPhone(data.senderPhone);
+  $('toName').textContent = data.receiverName || 'Receiver';
+  $('toAddr').textContent = data.destAddress || (valid(dLat, dLng) ? dLat.toFixed(4) + ', ' + dLng.toFixed(4) : '—');
+  $('pkgType').textContent = data.packageType || '—';
+  $('pkgPriority').textContent = (data.priority || 'standard').replace(/^\w/, c => c.toUpperCase());
+  $('pkgFee').textContent = CM.naira(data.fee);
+  $('deliveryPin').textContent = data.deliveryCode || '----';
+  if (data.packageNote) { $('pkgNoteWrap').classList.remove('hide'); $('pkgNote').textContent = data.packageNote; }
+  else $('pkgNoteWrap').classList.add('hide');
+
+  const hasLocationAt = Object.prototype.hasOwnProperty.call(data, 'locationAt');
+  const fixAt = CM.ts(data.locationAt) || (!hasLocationAt ? CM.ts(data.lastUpdated) : 0);
+  const age = fixAt ? Date.now() - fixAt : Infinity;
+
+  $('lastUpd').textContent = fixAt ? CM.ago(fixAt) : '—';
+  $('freshness').textContent = fixAt
+    ? `Last location update ${CM.ago(fixAt)}${data.accuracy ? ' · ±' + Math.round(data.accuracy) + 'm' : ''}`
+    : 'Waiting for the rider’s first GPS point';
+
+  if (age > MAX_STALE) {
+    $('stateBadge').className = 'badge badge-active';
+    $('stateBadge').innerHTML = '<span class="dot"></span> Signal delayed';
+    $('liveDot').style.color = 'var(--amber)';
+  } else {
+    $('stateBadge').className = 'badge badge-live';
+    $('stateBadge').innerHTML = '<span class="dot pulse"></span> Live';
+    $('liveDot').style.color = 'var(--green)';
+  }
+
+  const seq = data.sequence != null && isFinite(Number(data.sequence)) ? Number(data.sequence) : null;
+  if (seq !== null && seq <= lastSeq) return;
+  if (fixAt && fixAt <= lastFixAt) return;
+  if (seq !== null) lastSeq = seq;
+  if (fixAt) lastFixAt = fixAt;
+
+  if (valid(lat, lng)) {
+    $('overlay').classList.add('hide');
+    const pos = { lat, lng };
+    const start = valid(sLat, sLng) ? { lat: sLat, lng: sLng } : lastPos;
+    const dest = valid(dLat, dLng) ? { lat: dLat, lng: dLng } : null;
+
+    const pct = dest && start ? CM.progress(pos, start, dest) : null;
+    const stage = CM.stage(data, true, pct);
+    if (pct != null) {
+      $('pctNum').textContent = pct;
+      $('pctBar').style.width = pct + '%';
+    }
+    setStage(stage);
+
+    glide(lng, lat, Number(data.heading) || 0);
+    trail.push([lng, lat]);
+    if (trail.length > 40) trail.shift();
+    drawTrail();
+
+    if (dest) {
+      ensureDestMarker(dest.lng, dest.lat);
+      if (firstFit) {
+        const b = new maplibregl.LngLatBounds();
+        b.extend([lng, lat]); b.extend([dest.lng, dest.lat]);
+        map.fitBounds(b, { padding: 70, maxZoom: 15, duration: 700 });
+        firstFit = false;
+      }
+      const remaining = CM.dist(pos, dest);
+      if (remaining < Math.max(25, (Number(data.accuracy) || 30))) arrivalCount++;
+      else arrivalCount = 0;
+      if (arrivalCount >= 3) { $('etaBig').textContent = '0 min'; $('distBig').textContent = 'Arrived'; }
+      updateRoute(pos, dest);
+    }
+    lastPos = pos;
+  } else if (!lastPos) {
+    $('ovTitle').textContent = 'Waiting for GPS';
+    $('ovMsg').textContent = 'The rider has started the shipment and will appear here in a moment.';
+  }
+
+  if (data.status === 'delivered') showTerminal('delivered');
+  if (data.status === 'cancelled') showTerminal('cancelled');
+}
+
+const unsub = onSnapshot(orderRef(orderId), snap => {
+  if (!snap.exists()) {
+    $('ovTitle').textContent = 'Order not found';
+    $('ovMsg').textContent = 'Order ' + orderId + ' does not exist. Check the link.';
+    return;
+  }
+  try { render(snap.data()); }
+  catch (e) { console.error('Render error', e); }
+}, err => {
+  console.error(err);
+  $('ovTitle').textContent = 'Connection problem';
+  $('ovMsg').textContent = 'Unable to receive live updates. Check your internet and refresh.';
+});
+
+setInterval(() => {
+  if (!lastFixAt) return;
+  if (Date.now() - lastFixAt > MAX_STALE) {
+    $('stateBadge').className = 'badge badge-active';
+    $('stateBadge').innerHTML = '<span class="dot"></span> Signal delayed';
+    $('freshness').textContent = `No update for ${Math.round((Date.now() - lastFixAt) / 1000)}s — rider may be offline`;
+  }
+}, 5000);
+
+window.addEventListener('pagehide', () => { if (unsub) unsub(); routeAbort?.abort(); });
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => { });
+</script>
+</body>
+</html>

@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CharMary Courier & Logistics | Fast Delivery in Owerri</title>
+    <meta name="description" content="Your Delivery, Our Priority! CharMary Courier provides fast, reliable, and affordable dispatch services in Owerri. Track your riders live.">
+    
+    <!-- PWA & LOGO TAGS -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#FFC107">
+    <link rel="icon" type="image/jpeg" href="images/logo.jpg"> 
+    <link rel="apple-touch-icon" href="images/logo.jpg">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- Theme init (flash-free, applied before paint) -->
+    <script>
+    (function(){
+        try {
+            var t = localStorage.getItem('cm-theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+            document.documentElement.setAttribute('data-theme', t);
+        } catch(e) {}
+    })();
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --brand-yellow: #FFC107; --brand-black: #0A0A0A; --card-bg: #161616; --text-main: #ffffff; --text-muted: #A0A0A0; --success: #10b981; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--brand-black); color: var(--text-main); line-height: 1.6; overflow-x: hidden; }
+        h1, h2, h3, h4 { font-family: 'Montserrat', sans-serif; }
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+        
+        /* FLOATING WHATSAPP BUTTON (Moved up to avoid Tawk.to overlap) */
+        .floating-wa {
+            position: fixed; bottom: 90px; right: 20px; background: #25D366; color: white;
+            width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 32px; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); z-index: 9999; cursor: pointer; transition: 0.3s;
+        }
+        .floating-wa:hover { transform: scale(1.1); }
+
+        /* PWA INSTALL BANNER CSS */
+        #pwa-banner, #ios-banner {
+            display: none; position: fixed; bottom: 160px; left: 5%; width: 90%; max-width: 400px;
+            background: var(--card-bg); border: 2px solid var(--brand-yellow); border-radius: 10px;
+            padding: 15px; z-index: 9999; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            animation: slideUp 0.5s ease-out;
+        }
+        @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .pwa-content { display: flex; align-items: center; gap: 15px; }
+        .pwa-content img { width: 50px; height: 50px; border-radius: 10px; object-fit: cover;}
+        .pwa-text h4 { color: var(--brand-yellow); margin-bottom: 2px; font-size: 1rem; }
+        .pwa-text p { font-size: 0.8rem; color: var(--text-muted); }
+        .pwa-btns { display: flex; gap: 10px; margin-top: 15px; }
+        .pwa-btn { flex: 1; padding: 10px; border-radius: 5px; font-weight: bold; text-align: center; cursor: pointer; border: none; font-size: 0.85rem;}
+        .pwa-install { background: var(--brand-yellow); color: var(--brand-black); }
+        .pwa-close { background: transparent; border: 1px solid #444; color: #ccc; }
+
+        nav { background: rgba(10, 10, 10, 0.95); backdrop-filter: blur(10px); padding: 0.5rem 5%; display: flex; justify-content: space-between; align-items: center; position: fixed; width: 100%; top: 0; z-index: 1000; border-bottom: 2px solid var(--brand-yellow); }
+        .logo-container { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .logo-img { height: 50px; width: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--brand-yellow);}
+        .logo-text { font-family: 'Montserrat', sans-serif; font-size: 1.4rem; font-weight: 900; line-height: 1;}
+        .logo-text span { color: var(--brand-yellow); }
+        .logo-sub { font-size: 0.6rem; letter-spacing: 2px; color: var(--text-muted); text-transform: uppercase;}
+        .nav-right { position: relative; display: flex; align-items: center; }
+        .dashboard-btn { background: var(--brand-yellow); color: var(--brand-black); padding: 10px 20px; border-radius: 4px; font-weight: 800; font-family: 'Montserrat', sans-serif; cursor: pointer; border: none; font-size: 0.9rem; text-transform: uppercase; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .dashboard-btn:hover { background: #e0a800; transform: translateY(-2px); }
+        .dropdown-menu { position: absolute; top: 130%; right: 0; background: var(--card-bg); border-radius: 8px; width: 240px; opacity: 0; visibility: hidden; transform: translateY(-10px); transition: 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.8); overflow: hidden; border: 1px solid #333; }
+        .dropdown-menu.show { opacity: 1; visibility: visible; transform: translateY(0); }
+        .dropdown-menu a { display: block; padding: 15px 20px; color: var(--text-main); font-weight: 600; font-size: 0.9rem; border-bottom: 1px solid #333; transition: 0.2s; cursor: pointer; }
+        .dropdown-menu a:hover { background: rgba(255, 193, 7, 0.1); color: var(--brand-yellow); padding-left: 25px; }
+        .dropdown-menu a.active { background: rgba(255, 193, 7, 0.05); color: var(--brand-yellow); border-left: 4px solid var(--brand-yellow); padding-left: 25px; }
+        .dropdown-menu a i { margin-right: 10px; width: 20px; text-align: center; color: var(--brand-yellow);}
+        
+        .page-section { display: none; padding-top: 80px; min-height: 100vh; animation: fadeIn 0.4s ease-out; }
+        .page-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .back-btn { display: inline-flex; align-items: center; gap: 8px; color: var(--brand-yellow); font-size: 1rem; cursor: pointer; margin-bottom: 30px; transition: 0.3s; font-weight: 700; background: rgba(255, 193, 7, 0.1); padding: 10px 20px; border-radius: 4px; border: 1px solid rgba(255, 193, 7, 0.3); }
+        .back-btn:hover { background: var(--brand-yellow); color: var(--brand-black); }
+        .container { padding: 40px 5% 80px 5%; max-width: 1300px; margin: 0 auto; }
+        
+        .hero { background: linear-gradient(rgba(10, 10, 10, 0.7), rgba(10, 10, 10, 0.9)), url('images/banner-logo.jpg') center/cover; height: 90vh; display: flex; align-items: center; padding: 0 5%; }
+        .hero-content { max-width: 700px; }
+        .hero h1 { font-size: 3.5rem; margin-bottom: 20px; line-height: 1.1; font-weight: 900;}
+        .hero h1 span { color: var(--brand-yellow); }
+        .hero p { font-size: 1.2rem; color: #ddd; margin-bottom: 30px; font-weight: 300; }
+        .btn { display: inline-block; background: var(--brand-yellow); color: var(--brand-black); padding: 14px 30px; border-radius: 4px; font-weight: 800; font-family: 'Montserrat', sans-serif; transition: 0.3s; border: none; font-size: 0.9rem; text-transform: uppercase; cursor: pointer;}
+        .btn:hover { background: #e0a800; transform: translateY(-2px); }
+        .btn-outline { background: transparent; border: 2px solid var(--brand-yellow); color: var(--brand-yellow); }
+        .btn-outline:hover { background: var(--brand-yellow); color: var(--brand-black); }
+        
+        .section-title { margin-bottom: 40px; text-align: center;}
+        .section-title h2 { font-size: 2.5rem; margin-bottom: 10px; }
+        .section-title h2 span { color: var(--brand-yellow); }
+        .section-title p { color: var(--text-muted); font-size: 1.1rem; }
+        
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        .feature-card { background: var(--card-bg); border-radius: 8px; overflow: hidden; transition: 0.3s; border: 1px solid #333; }
+        .feature-card:hover { transform: translateY(-5px); border-color: var(--brand-yellow); box-shadow: 0 10px 30px rgba(0,0,0,0.5);}
+        .feature-img { width: 100%; height: 250px; object-fit: cover; display: block; }
+        .feature-content { padding: 25px; text-align: center;}
+        .feature-content i { font-size: 2rem; color: var(--brand-yellow); margin-bottom: 15px; }
+        .feature-content h3 { margin-bottom: 15px; font-size: 1.3rem; }
+        .feature-content p { color: var(--text-muted); font-size: 0.95rem; }
+
+        .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; text-align: center; margin-top: 30px;}
+        .step-box { background: var(--card-bg); padding: 30px 20px; border-radius: 8px; border: 1px solid #333; position: relative;}
+        .step-number { background: var(--brand-yellow); color: var(--brand-black); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.2rem; margin: 0 auto 15px auto; }
+        .step-box h4 { margin-bottom: 10px; color: #fff; }
+        .step-box p { color: var(--text-muted); font-size: 0.9rem; }
+
+        .tracking-search-box { max-width: 500px; margin: 0 auto; background: var(--card-bg); padding: 40px; border-radius: 8px; border: 2px solid var(--brand-yellow); text-align: center;}
+        .tracking-search-box input { width: 100%; padding: 15px; margin-bottom: 20px; border-radius: 4px; border: 1px solid #333; background: var(--brand-black); color: white; font-size: 1.1rem; text-align: center; outline: none;}
+        .tracking-search-box input:focus { border-color: var(--brand-yellow); }
+        
+        .partner-banner { background: linear-gradient(135deg, #161616, #0A0A0A); border: 2px solid var(--brand-yellow); border-radius: 12px; padding: 50px 30px; text-align: center; margin-top: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);}
+        .partner-banner h3 { font-size: 2rem; margin-bottom: 15px; color: #fff; }
+        .partner-banner h3 span { color: var(--brand-yellow); }
+        .partner-banner p { color: var(--text-muted); margin-bottom: 25px; max-width: 600px; margin-inline: auto; }
+        .partner-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 40px; text-align: left;}
+        .partner-item { background: rgba(255,193,7,0.05); padding: 20px; border-radius: 8px; border-left: 4px solid var(--brand-yellow); }
+        .partner-item h4 { color: var(--brand-yellow); margin-bottom: 5px; }
+        .partner-item p { font-size: 0.9rem; margin-bottom: 0; }
+        
+        .about-grid, .contact-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center;}
+        .about-img img { width: 100%; border-radius: 8px; border: 2px solid var(--card-bg); box-shadow: 0 10px 30px rgba(0,0,0,0.5); object-fit: cover;}
+        .about-text h2 { font-size: 2.5rem; margin-bottom: 20px; }
+        .about-text p { color: var(--text-muted); margin-bottom: 15px; font-size: 1.05rem;}
+        
+        .faq-item { background: var(--card-bg); border: 1px solid #333; border-radius: 8px; margin-bottom: 15px; padding: 20px; border-left: 4px solid var(--brand-yellow); }
+        .faq-item h4 { margin-bottom: 10px; color: #fff; font-size: 1.1rem; }
+        .faq-item p { color: var(--text-muted); font-size: 0.95rem; }
+
+        .info-item { display: flex; align-items: flex-start; gap: 15px; margin-bottom: 25px; }
+        .info-item i { color: var(--brand-yellow); font-size: 1.5rem; margin-top: 3px; }
+        .info-item h4 { font-size: 1.1rem; margin-bottom: 5px; }
+        .info-item p { font-size: 1rem; color: var(--text-muted); }
+        .quote-form { display: flex; flex-direction: column; gap: 20px; background: var(--card-bg); padding: 40px; border-radius: 8px; border-top: 4px solid var(--brand-yellow); border-left: 1px solid #333; border-right: 1px solid #333; border-bottom: 1px solid #333;}
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-group label { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; }
+        .form-group input, .form-group textarea { background: var(--brand-black); border: 1px solid #333; padding: 15px; color: white; border-radius: 4px; font-family: 'Inter'; outline: none; }
+        .form-group input:focus, .form-group textarea:focus { border-color: var(--brand-yellow); }
+        
+        footer { background: var(--card-bg); text-align: center; padding: 30px 5%; border-top: 2px solid var(--brand-yellow); }
+        footer p { color: var(--text-muted); font-size: 0.9rem; }
+        
+        @media (max-width: 900px) {
+            .about-grid, .contact-wrapper, .steps-grid, .partner-grid { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 2.5rem; }
+            .dropdown-menu { width: 100%; position: fixed; top: 70px; left: 0; border-radius: 0; }
+        }
+
+        /* ============================================================ */
+        /* THEME TOGGLE + LIGHT MODE (added — layout untouched)         */
+        /* ============================================================ */
+        .theme-btn{
+            background: transparent;
+            border: 1px solid #333;
+            color: var(--brand-yellow);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: transform 0.3s, background 0.3s, border-color 0.3s;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .theme-btn:hover{
+            background: rgba(255,193,7,0.12);
+            transform: rotate(-12deg);
+        }
+
+        /* Light mode overrides */
+        [data-theme="light"]{
+            --brand-black: #f4f5f7;
+            --card-bg: #ffffff;
+            --text-main: #0b0d12;
+            --text-muted: #5a6072;
+        }
+        [data-theme="light"] body{ background-color: #f4f5f7; color: #0b0d12; }
+        [data-theme="light"] nav{ background: rgba(255,255,255,0.94); }
+        [data-theme="light"] .theme-btn{ border-color: #d8dbe2; }
+        [data-theme="light"] .dropdown-menu{ background: #fff; border-color: #e6e8ec; }
+        [data-theme="light"] .dropdown-menu a{ color: #0b0d12; border-color: #eef0f4; }
+        [data-theme="light"] .feature-card,
+        [data-theme="light"] .step-box,
+        [data-theme="light"] .faq-item,
+        [data-theme="light"] .quote-form,
+        [data-theme="light"] .partner-banner,
+        [data-theme="light"] .tracking-search-box{ background: #fff; border-color: #e6e8ec; }
+        [data-theme="light"] .feature-content p,
+        [data-theme="light"] .step-box p,
+        [data-theme="light"] .faq-item p,
+        [data-theme="light"] .info-item p,
+        [data-theme="light"] .about-text p,
+        [data-theme="light"] .section-title p{ color: #5a6072; }
+        [data-theme="light"] .hero{
+            background: linear-gradient(rgba(255,255,255,0.86), rgba(255,255,255,0.95)), url('images/banner-logo.jpg') center/cover;
+        }
+        [data-theme="light"] .hero h1,
+        [data-theme="light"] .section-title h2,
+        [data-theme="light"] .about-text h2,
+        [data-theme="light"] .step-box h4,
+        [data-theme="light"] .feature-content h3,
+        [data-theme="light"] .faq-item h4,
+        [data-theme="light"] .info-item h4,
+        [data-theme="light"] .partner-banner h3,
+        [data-theme="light"] .partner-banner h3 span{ color: #0b0d12; }
+        [data-theme="light"] .hero p{ color: #3a3f4d; }
+        [data-theme="light"] footer{ background: #fff; }
+        [data-theme="light"] .form-group input,
+        [data-theme="light"] .form-group textarea,
+        [data-theme="light"] .tracking-search-box input{
+            background: #f7f8fa;
+            color: #0b0d12;
+            border-color: #dde0e6;
+        }
+        [data-theme="light"] .partner-banner{
+            background: linear-gradient(135deg, #ffffff, #f7f8fa);
+        }
+        [data-theme="light"] #pwa-banner,
+        [data-theme="light"] #ios-banner{
+            background: #ffffff;
+            border-color: var(--brand-yellow);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        [data-theme="light"] .pwa-close{ color: #5a6072; border-color: #d8dbe2; }
+        [data-theme="light"] .floating-wa{ box-shadow: 0 4px 15px rgba(37,211,102,0.45); }
+        [data-theme="light"] .back-btn{ background: rgba(255,193,7,0.15); }
+    </style>
+</head>
+<body>
+
+    <!-- FLOATING WHATSAPP BUTTON -->
+    <a href="https://wa.me/2348087276942" target="_blank" class="floating-wa">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <div id="pwa-banner">
+        <div class="pwa-content">
+            <img src="images/logo.jpg" alt="App Icon">
+            <div class="pwa-text">
+                <h4>Install CharMary App</h4>
+                <p>Fast, reliable delivery at your fingertips.</p>
+            </div>
+        </div>
+        <div class="pwa-btns">
+            <button class="pwa-btn pwa-close" onclick="closePwaBanner()">Not Now</button>
+            <button class="pwa-btn pwa-install" onclick="installPwa()">Install App</button>
+        </div>
+    </div>
+
+    <div id="ios-banner">
+        <div class="pwa-content">
+            <img src="images/logo.jpg" alt="App Icon">
+            <div class="pwa-text">
+                <h4>Install CharMary App</h4>
+                <p>Tap <i class="fas fa-upload" style="color:#007AFF;"></i> Share, then "Add to Home Screen".</p>
+            </div>
+        </div>
+        <div class="pwa-btns">
+            <button class="pwa-btn pwa-close" onclick="closeIosBanner()">Got it</button>
+        </div>
+    </div>
+
+    <nav>
+        <div class="logo-container" onclick="showPage('home', 'link-home')">
+            <img src="images/logo.jpg" alt="CharMary Logo" class="logo-img">
+            <div>
+                <div class="logo-text">CHAR<span>MARY</span></div>
+                <div class="logo-sub">Courier & Logistics</div>
+            </div>
+        </div>
+        <div class="nav-right">
+            <button class="theme-btn" onclick="CMtoggle(event)" aria-label="Toggle theme">
+                <i class="fas fa-sun" data-theme-icon></i>
+            </button>
+            <button class="dashboard-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i> Menu</button>
+            <div class="dropdown-menu" id="myDropdown">
+                <a onclick="showPage('home', 'link-home'); toggleMenu()" id="link-home" class="active"><i class="fas fa-home"></i> Home</a>
+                <a onclick="showPage('track-page', 'link-track'); toggleMenu()" id="link-track"><i class="fas fa-map-marked-alt"></i> Track Order</a>
+                <a onclick="showPage('services', 'link-services'); toggleMenu()" id="link-services"><i class="fas fa-box"></i> Services</a>
+                <a onclick="showPage('features', 'link-features'); toggleMenu()" id="link-features"><i class="fas fa-star"></i> Why Choose Us</a>
+                <a onclick="showPage('about', 'link-about'); toggleMenu()" id="link-about"><i class="fas fa-info-circle"></i> About Us</a>
+                <a onclick="showPage('faq', 'link-faq'); toggleMenu()" id="link-faq"><i class="fas fa-question-circle"></i> FAQs</a>
+                <a onclick="showPage('contact', 'link-contact'); toggleMenu()" id="link-contact"><i class="fas fa-headset"></i> Contact Us</a>
+            </div>
+        </div>
+    </nav>
+
+    <main id="home" class="page-section active">
+        <header class="hero">
+            <div class="hero-content">
+                <h1>Your Delivery, <span>Our Priority!</span></h1>
+                <p>Fast, Reliable & Affordable delivery services in Owerri. Track your riders live from pickup to drop-off.</p>
+                <div style="display: flex; gap: 15px;">
+                    <button class="btn" onclick="showPage('contact', 'link-contact')">Book a Rider</button>
+                    <button class="btn btn-outline" onclick="showPage('track-page', 'link-track')">Track Order</button>
+                </div>
+            </div>
+        </header>
+        
+        <section class="container">
+            <div class="section-title"><h2>How It <span>Works</span></h2></div>
+            <div class="steps-grid">
+                <div class="step-box">
+                    <div class="step-number">1</div>
+                    <h4>Book a Rider</h4>
+                    <p>Send us a message on WhatsApp with your pickup and drop-off location.</p>
+                </div>
+                <div class="step-box">
+                    <div class="step-number">2</div>
+                    <h4>We Pick Up</h4>
+                    <p>Our professional rider arrives promptly to pick up your package securely.</p>
+                </div>
+                <div class="step-box">
+                    <div class="step-number">3</div>
+                    <h4>Track & Deliver</h4>
+                    <p>You receive a live tracking link to watch your package arrive safely.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="container" style="padding-top: 0;">
+            <div class="section-title"><h2>Why Choose <span>CharMary?</span></h2></div>
+            <div class="grid-3">
+                <div class="feature-card">
+                    <div class="feature-content">
+                        <i class="fas fa-bolt"></i>
+                        <h3>Swift Delivery</h3>
+                        <p>We understand that time is money. Our riders are always on the move to ensure same-day delivery.</p>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-content">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <h3>Live GPS Tracking</h3>
+                        <p>Never wonder where your package is again. Watch your rider's exact location on our live map.</p>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-content">
+                        <i class="fas fa-tags"></i>
+                        <h3>Affordable Rates</h3>
+                        <p>Premium dispatch services shouldn't break the bank. We offer the best rates in Owerri.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="container" style="padding-top: 0;">
+            <div class="section-title"><h2>What Our <span>Customers Say</span></h2></div>
+            <div class="grid-3">
+                <div class="feature-card" style="padding: 25px;">
+                    <i class="fas fa-quote-left" style="color: var(--brand-yellow); font-size: 1.5rem; margin-bottom: 15px;"></i>
+                    <p style="font-style: italic; color: #ddd; margin-bottom: 15px;">"CharMary delivered my package from Wetheral to New Owerri in under 1 hour. The live tracking is a lifesaver!"</p>
+                    <h4 style="color: var(--brand-yellow);">- Sarah O.</h4>
+                </div>
+                <div class="feature-card" style="padding: 25px;">
+                    <i class="fas fa-quote-left" style="color: var(--brand-yellow); font-size: 1.5rem; margin-bottom: 15px;"></i>
+                    <p style="font-style: italic; color: #ddd; margin-bottom: 15px;">"I use them for my restaurant deliveries. Fast, professional, and the riders are always polite."</p>
+                    <h4 style="color: var(--brand-yellow);">- Chef Emeka</h4>
+                </div>
+                <div class="feature-card" style="padding: 25px;">
+                    <i class="fas fa-quote-left" style="color: var(--brand-yellow); font-size: 1.5rem; margin-bottom: 15px;"></i>
+                    <p style="font-style: italic; color: #ddd; margin-bottom: 15px;">"Very reliable. I sent my laptop across town and tracked the rider the whole way. Highly recommended."</p>
+                    <h4 style="color: var(--brand-yellow);">- David A.</h4>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <main id="track-page" class="page-section">
+        <section class="container">
+            <div class="back-btn" onclick="showPage('home', 'link-home')"><i class="fas fa-arrow-left"></i> Back to Home</div>
+            <div class="section-title">
+                <h2>Track Your <span>Delivery</span></h2>
+                <p>Enter your Order ID to view the rider's live location.</p>
+            </div>
+            <div class="tracking-search-box">
+                <i class="fas fa-search-location" style="font-size: 3rem; color: var(--brand-yellow); margin-bottom: 20px;"></i>
+                <input type="text" id="orderIdInput" placeholder="Enter Order ID (e.g., CH-90210)">
+                <button class="btn" style="width: 100%;" onclick="redirectToTracking()">Track Rider Now</button>
+            </div>
+        </section>
+    </main>
+
+    <main id="services" class="page-section">
+        <section class="container">
+            <div class="back-btn" onclick="showPage('home', 'link-home')"><i class="fas fa-arrow-left"></i> Back to Home</div>
+            <div class="section-title"><h2>Our <span>Services</span></h2></div>
+            <div class="grid-3">
+                <div class="feature-card">
+                    <img src="images/rider1.jpg" class="feature-img" alt="CharMary Rider">
+                    <div class="feature-content"><h3>Express Delivery</h3><p>Fast and reliable delivery for your urgent packages across Owerri.</p></div>
+                </div>
+                <div class="feature-card">
+                    <img src="images/bike1.jpg" class="feature-img" alt="CharMary Delivery Bike">
+                    <div class="feature-content"><h3>Parcels & Packages</h3><p>Documents or large packages, our riders will get it across town safely.</p></div>
+                </div>
+                <div class="feature-card">
+                    <img src="images/bike2.jpg" class="feature-img" alt="Delivery Bike">
+                    <div class="feature-content"><h3>Door-to-Door Delivery</h3><p>We pick up from your location and deliver directly to the receiver's doorstep.</p></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <main id="features" class="page-section">
+        <section class="container">
+            <div class="back-btn" onclick="showPage('home', 'link-home')"><i class="fas fa-arrow-left"></i> Back to Home</div>
+            <div class="section-title">
+                <h2>Why Choose <span>CharMary</span></h2>
+                <p>We don't just deliver packages; we deliver peace of mind.</p>
+            </div>
+            
+            <div class="grid-3">
+                <div class="feature-card">
+                    <div class="feature-content" style="text-align: left;">
+                        <i class="fas fa-shield-alt"></i>
+                        <h3>Safe & Secure Handling</h3>
+                        <p>Your items are our top priority. Our riders use secure delivery boxes and handle every package with extreme care to ensure it arrives in perfect condition.</p>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-content" style="text-align: left;">
+                        <i class="fas fa-stopwatch"></i>
+                        <h3>Real-Time Tracking</h3>
+                        <p>No more guessing. Our custom tracking system allows you to watch your rider's exact location on a live map, giving you total control and peace of mind.</p>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-content" style="text-align: left;">
+                        <i class="fas fa-user-shield"></i>
+                        <h3>Verified Riders</h3>
+                        <p>All our dispatch riders are thoroughly vetted, professionally trained, and equipped with proper safety gear. You can trust who is carrying your goods.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="partner-banner">
+                <h3>Are You a <span>Business Owner?</span></h3>
+                <p>Whether you run a restaurant, a boutique, or an e-commerce store, we provide seamless logistics for your business.</p>
+                
+                <div class="partner-grid">
+                    <div class="partner-item">
+                        <h4><i class="fas fa-utensils"></i> Restaurants & Food Vendors</h4>
+                        <p>Get hot food to your customers fast with insulated delivery boxes.</p>
+                    </div>
+                    <div class="partner-item">
+                        <h4><i class="fas fa-shopping-bag"></i> E-commerce & Boutiques</h4>
+                        <p>Deliver your products to customers across Owerri with real-time tracking.</p>
+                    </div>
+                </div>
+
+                <button class="btn" style="margin-top: 30px; background: #25D366; color: white;" onclick="showPage('contact', 'link-contact')">
+                    <i class="fab fa-whatsapp"></i> Become a Partner
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <main id="about" class="page-section">
+        <section class="container">
+            <div class="back-btn" onclick="showPage('home', 'link-home')"><i class="fas fa-arrow-left"></i> Back to Home</div>
+            <div class="section-title">
+                <h2>About <span>CharMary</span></h2>
+                <p>Your trusted delivery partner in Owerri.</p>
+            </div>
+            
+            <div class="about-grid">
+                <div class="about-img">
+                    <img src="images/rider2.jpg" alt="CharMary Rider">
+                </div>
+                <div class="about-text">
+                    <h2>Who We Are</h2>
+                    <p>CharMary Courier and Logistics is a premier dispatch company based in Owerri, Imo State. We were founded on a simple principle: to provide fast, reliable, and affordable delivery services to individuals and businesses.</p>
+                    <p>We understand the hustle of Owerri, and we are here to make your life easier. Whether you're a restaurant owner needing food delivered hot, or a business owner shipping products to customers, our dedicated team of riders ensures your items arrive on time, every time.</p>
+                    <div style="display: flex; gap: 40px; margin-top: 30px;">
+                        <div>
+                            <h3 style="color: var(--brand-yellow); font-size: 2rem; font-family: 'Montserrat';">100%</h3>
+                            <p style="font-size: 0.9rem; text-transform: uppercase; color: var(--text-muted);">Reliability</p>
+                        </div>
+                        <div>
+                            <h3 style="color: var(--brand-yellow); font-size: 2rem; font-family: 'Montserrat';">24/7</h3>
+                            <p style="font-size: 0.9rem; text-transform: uppercase; color: var(--text-muted);">Customer Support</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <main id="faq" class="page-section">
+        <section class="container">
+            <div class="back-btn" onclick="showPage('home', 'link-home')"><i class="fas fa-arrow-left"></i> Back to Home</div>
+            <div class="section-title">
+                <h2>Frequently Asked <span>Questions</span></h2>
+                <p>Got questions? We have answers.</p>
+            </div>
+            
+            <div style="max-width: 800px; margin: 0 auto;">
+                <div class="faq-item">
+                    <h4><i class="fas fa-question-circle" style="color: var(--brand-yellow); margin-right: 10px;"></i> How do I track my package?</h4>
+                    <p>Once your rider picks up your package, you will receive a tracking link via WhatsApp. Click the link to view the rider's live location on a map in real-time.</p>
+                </div>
+                <div class="faq-item">
+                    <h4><i class="fas fa-map-marker-alt" style="color: var(--brand-yellow); margin-right: 10px;"></i> What areas do you cover?</h4>
+                    <p>We currently cover the entire Owerri metropolis and its immediate surrounding areas. For deliveries outside Owerri, please contact us for a custom quote.</p>
+                </div>
+                <div class="faq-item">
+                    <h4><i class="fas fa-money-bill-wave" style="color: var(--brand-yellow); margin-right: 10px;"></i> How do I pay for my delivery?</h4>
+                    <p>We accept Bank Transfers and Cash on Delivery. Payment details will be provided once you book a rider via WhatsApp.</p>
+                </div>
+                <div class="faq-item">
+                    <h4><i class="fas fa-box" style="color: var(--brand-yellow); margin-right: 10px;"></i> Can I send fragile items?</h4>
+                    <p>Yes, our riders are trained to handle fragile items with the utmost care. Please ensure the item is properly packaged and let us know in advance if it is fragile.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <main id="contact" class="page-section">
+        <section class="container">
+            <div class="back-btn" onclick="showPage('home', 'link-home')"><i class="fas fa-arrow-left"></i> Back to Home</div>
+            <div class="section-title">
+                <h2>Contact <span>Us</span></h2>
+                <p>Book a rider or make an inquiry directly via WhatsApp.</p>
+            </div>
+
+            <div class="contact-wrapper">
+                <div class="contact-info">
+                    <h2>Get in Touch</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 30px;">Fill out the form and it will automatically open WhatsApp with your details ready to send.</p>
+                    
+                    <div class="info-item"><i class="fab fa-whatsapp"></i><div><h4>Call / WhatsApp</h4><p>0808 727 6942</p></div></div>
+                    <div class="info-item"><i class="fas fa-map-marker-alt"></i><div><h4>Location</h4><p>Owerri, Imo State, Nigeria</p></div></div>
+                </div>
+
+                <form class="quote-form" onsubmit="sendWhatsApp(event)">
+                    <div class="form-group"><label>Your Name</label><input type="text" id="cName" placeholder="e.g. John Doe" required></div>
+                    <div class="form-group"><label>Phone Number</label><input type="tel" id="cPhone" placeholder="e.g. 08012345678" required></div>
+                    <div class="form-group"><label>Pickup & Drop-off Details</label><textarea id="cDetails" rows="4" placeholder="e.g. Pick up from Wetheral Road, drop at New Owerri" required></textarea></div>
+                    <button type="submit" class="btn" style="background: #25D366; color: white;"><i class="fab fa-whatsapp"></i> Send via WhatsApp</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <img src="images/logo.jpg" alt="CharMary Logo" style="height: 60px; border-radius: 50%; margin-bottom: 15px;">
+        <p>&copy; 2024 CharMary Courier and Logistics. All rights reserved.</p>
+        <p style="margin-top: 5px; font-size: 0.8rem;">Demo Website built by PrimeWeb Designs</p>
+    </footer>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); });
+        }
+        let deferredPrompt;
+        const pwaBanner = document.getElementById('pwa-banner');
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault(); deferredPrompt = e;
+            if(!localStorage.getItem('pwa-closed')) { pwaBanner.style.display = 'block'; }
+        });
+        function installPwa() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then(() => { deferredPrompt = null; pwaBanner.style.display = 'none'; });
+            }
+        }
+        function closePwaBanner() { pwaBanner.style.display = 'none'; localStorage.setItem('pwa-closed', 'true'); }
+        const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+        const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
+        if (isIos() && !isInStandaloneMode()) {
+            const iosBanner = document.getElementById('ios-banner');
+            if(!localStorage.getItem('ios-pwa-closed')) { setTimeout(() => { iosBanner.style.display = 'block'; }, 3000); }
+        }
+        function closeIosBanner() { document.getElementById('ios-banner').style.display = 'none'; localStorage.setItem('ios-pwa-closed', 'true'); }
+
+        function toggleMenu() { document.getElementById("myDropdown").classList.toggle("show"); }
+        window.onclick = function(event) {
+            if (!event.target.matches('.dashboard-btn') && !event.target.matches('.dashboard-btn i')) {
+                var dropdowns = document.getElementsByClassName("dropdown-menu");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) { openDropdown.classList.remove('show'); }
+                }
+            }
+        }
+        function showPage(pageId, linkId) {
+            document.querySelectorAll('.page-section').forEach(section => { section.classList.remove('active'); });
+            document.getElementById(pageId).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            document.querySelectorAll('.dropdown-menu a').forEach(link => { link.classList.remove('active'); });
+            if(linkId) { document.getElementById(linkId).classList.add('active'); }
+        }
+        
+        function sendWhatsApp(event) {
+            event.preventDefault();
+            const name = document.getElementById('cName').value;
+            const phone = document.getElementById('cPhone').value;
+            const details = document.getElementById('cDetails').value;
+            const message = `Hello CharMary! I'd like to book a rider.%0A%0A*Name:* ${encodeURIComponent(name)}%0A*Phone:* ${encodeURIComponent(phone)}%0A*Details:* ${encodeURIComponent(details)}`;
+            window.open(`https://wa.me/2348087276942?text=${message}`, '_blank');
+        }
+
+        /* ---- THEME TOGGLE (added) ---- */
+        function CMtoggle(e) {
+            const root = document.documentElement;
+            const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            root.setAttribute('data-theme', next);
+            try { localStorage.setItem('cm-theme', next); } catch(err){}
+            document.querySelectorAll('[data-theme-icon]').forEach(function(icon){
+                icon.className = 'fas ' + (next === 'dark' ? 'fa-sun' : 'fa-moon');
+            });
+            // Sync any other tabs
+            try { window.dispatchEvent(new CustomEvent('themechange', { detail: { theme: next } })); } catch(err){}
+        }
+        // Sync the toggle icon with whatever theme was applied on load
+        document.addEventListener('DOMContentLoaded', function(){
+            const t = document.documentElement.getAttribute('data-theme') || 'dark';
+            document.querySelectorAll('[data-theme-icon]').forEach(function(icon){
+                icon.className = 'fas ' + (t === 'dark' ? 'fa-sun' : 'fa-moon');
+            });
+        });
+
+        /* ---- TRACKING REDIRECT (fixed — accepts full URLs, adds loading state, normalizes ID) ---- */
+        function redirectToTracking() {
+            const input = document.getElementById('orderIdInput');
+            let raw = input.value.trim();
+            if (!raw) { alert("Please enter an Order ID"); return; }
+
+            // Accept full tracking URLs pasted in (e.g. https://.../track.html?id=CH-1234)
+            if (/^https?:\/\//i.test(raw)) {
+                try {
+                    const u = new URL(raw);
+                    raw = u.searchParams.get('id') || u.pathname.split('/').pop() || '';
+                } catch(err) {}
+            }
+
+            // Normalize: uppercase, keep only letters/numbers/hyphens
+            const id = raw.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+            if (!id || id.length < 4) { alert("Invalid Order ID. Example: CH-90210"); return; }
+
+            // Loading state on the button
+            const btn = document.querySelector('.tracking-search-box .btn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Locating rider...';
+            }
+
+            window.location.href = "track.html?id=" + encodeURIComponent(id);
+        }
+    </script>
+
+    <!--Start of Tawk.to Script-->
+    <script type="text/javascript">
+    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+    (function(){
+    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+    s1.async=true;
+    s1.src='https://embed.tawk.to/6afc81888e6f59d4de4962ad/default';
+    s1.charset='UTF-8';
+    s1.setAttribute('crossorigin','*');
+    s0.parentNode.insertBefore(s1,s0);
+    })();
+    </script>
+    <!--End of Tawk.to Script-->
+
+</body>
+</html>

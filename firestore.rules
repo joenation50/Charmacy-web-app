@@ -1,0 +1,359 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Global Default-Deny Catch-All
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Reusable Primitives
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidOrderId(id) {
+      return id is string && id.size() >= 4 && id.size() <= 40 && id.matches('^[A-Z0-9-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isVerified() && (
+        request.auth.token.email == 'joenation98@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidLatLng(lat, lng) {
+      return lat is number && lng is number && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+    }
+
+    // 3. Entity Validation Blueprints
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['uid', 'email', 'displayName', 'role', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'email', 'displayName', 'photoURL', 'role', 'phone', 'bikePlate', 'isOnline', 'createdAt', 'updatedAt'])
+        && isValidId(data.uid)
+        && data.email is string && data.email.size() >= 3 && data.email.size() <= 254
+        && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 120
+        && data.role in ['rider', 'admin']
+        && (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 500))
+        && (!('phone' in data) || (data.phone is string && data.phone.size() <= 32))
+        && (!('bikePlate' in data) || (data.bikePlate is string && data.bikePlate.size() <= 32))
+        && (!('isOnline' in data) || data.isOnline is bool)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidAdminRecord(data) {
+      return data.keys().hasAll(['uid', 'email', 'grantedBy', 'createdAt'])
+        && data.keys().hasOnly(['uid', 'email', 'grantedBy', 'createdAt'])
+        && isValidId(data.uid)
+        && data.email is string && data.email.size() >= 3 && data.email.size() <= 254
+        && data.grantedBy is string && data.grantedBy.size() >= 1 && data.grantedBy.size() <= 128
+        && data.createdAt is timestamp;
+    }
+
+    function isValidOrder(data) {
+      return data.keys().hasAll([
+          'orderId', 'riderUid', 'riderName', 'riderPhone', 'riderBike',
+          'senderName', 'senderPhone', 'receiverName', 'receiverPhone',
+          'packageType', 'priority', 'fee', 'destAddress', 'destLat', 'destLng',
+          'startLat', 'startLng', 'deliveryCode', 'status', 'trackingState',
+          'sequence', 'createdAt', 'lastUpdated'
+        ])
+        && data.keys().hasOnly([
+          'orderId', 'riderUid', 'riderName', 'riderPhone', 'riderBike',
+          'senderName', 'senderPhone', 'receiverName', 'receiverPhone',
+          'packageType', 'packageNote', 'priority', 'fee', 'destAddress', 'destPlaceId',
+          'destLat', 'destLng', 'startLat', 'startLng', 'deliveryCode',
+          'status', 'trackingState', 'lat', 'lng', 'heading', 'speed', 'accuracy',
+          'isMoving', 'routeDistanceMeters', 'routeDurationSeconds', 'sequence',
+          'locationAt', 'heartbeatAt', 'createdAt', 'lastUpdated', 'deliveredAt'
+        ])
+        && isValidOrderId(data.orderId)
+        && isValidId(data.riderUid)
+        && data.riderName is string && data.riderName.size() >= 1 && data.riderName.size() <= 120
+        && data.riderPhone is string && data.riderPhone.size() >= 4 && data.riderPhone.size() <= 32
+        && data.riderBike is string && data.riderBike.size() >= 2 && data.riderBike.size() <= 32
+        && data.senderName is string && data.senderName.size() >= 1 && data.senderName.size() <= 120
+        && data.senderPhone is string && data.senderPhone.size() >= 4 && data.senderPhone.size() <= 32
+        && data.receiverName is string && data.receiverName.size() >= 1 && data.receiverName.size() <= 120
+        && data.receiverPhone is string && data.receiverPhone.size() >= 4 && data.receiverPhone.size() <= 32
+        && data.packageType is string && data.packageType.size() >= 1 && data.packageType.size() <= 40
+        && (!('packageNote' in data) || (data.packageNote is string && data.packageNote.size() <= 300))
+        && data.priority in ['standard', 'express']
+        && data.fee is number && data.fee >= 0 && data.fee <= 10000000
+        && data.destAddress is string && data.destAddress.size() >= 1 && data.destAddress.size() <= 300
+        && (!('destPlaceId' in data) || (data.destPlaceId is string && data.destPlaceId.size() <= 256))
+        && isValidLatLng(data.destLat, data.destLng)
+        && isValidLatLng(data.startLat, data.startLng)
+        && data.deliveryCode is string && data.deliveryCode.matches('^[0-9]{4}$')
+        && data.status in ['active', 'delivered', 'cancelled']
+        && data.trackingState in ['starting', 'live', 'stopped', 'offline', 'completed', 'cancelled']
+        && data.sequence is number && data.sequence >= 0
+        && (!('lat' in data) || data.lat == null || (data.lat is number && data.lat >= -90 && data.lat <= 90))
+        && (!('lng' in data) || data.lng == null || (data.lng is number && data.lng >= -180 && data.lng <= 180))
+        && (!('heading' in data) || data.heading == null || (data.heading is number && data.heading >= 0 && data.heading <= 360))
+        && (!('speed' in data) || data.speed == null || (data.speed is number && data.speed >= 0 && data.speed <= 120))
+        && (!('accuracy' in data) || data.accuracy == null || (data.accuracy is number && data.accuracy >= 0 && data.accuracy <= 10000))
+        && (!('isMoving' in data) || data.isMoving is bool)
+        && (!('routeDistanceMeters' in data) || data.routeDistanceMeters == null || (data.routeDistanceMeters is number && data.routeDistanceMeters >= 0))
+        && (!('routeDurationSeconds' in data) || data.routeDurationSeconds == null || (data.routeDurationSeconds is number && data.routeDurationSeconds >= 0))
+        && (!('locationAt' in data) || data.locationAt == null || data.locationAt is number)
+        && (!('heartbeatAt' in data) || data.heartbeatAt == null || data.heartbeatAt is timestamp)
+        && (!('deliveredAt' in data) || data.deliveredAt == null || data.deliveredAt is timestamp)
+        && data.createdAt is timestamp
+        && data.lastUpdated is timestamp;
+    }
+
+    function isValidPublicTracking(data) {
+      return data.keys().hasAll([
+          'orderId', 'riderUid', 'riderDisplayName', 'riderBike',
+          'packageType', 'priority', 'destLabel', 'destLat', 'destLng',
+          'startLat', 'startLng', 'status', 'trackingState', 'sequence', 'lastUpdated'
+        ])
+        && data.keys().hasOnly([
+          'orderId', 'riderUid', 'riderDisplayName', 'riderBike',
+          'packageType', 'priority', 'destLabel', 'destLat', 'destLng',
+          'startLat', 'startLng', 'status', 'trackingState',
+          'lat', 'lng', 'heading', 'speed', 'accuracy', 'isMoving',
+          'routeDistanceMeters', 'routeDurationSeconds', 'sequence',
+          'locationAt', 'lastUpdated', 'deliveredAt'
+        ])
+        && isValidOrderId(data.orderId)
+        && isValidId(data.riderUid)
+        && data.riderDisplayName is string && data.riderDisplayName.size() >= 1 && data.riderDisplayName.size() <= 80
+        && data.riderBike is string && data.riderBike.size() >= 2 && data.riderBike.size() <= 32
+        && data.packageType is string && data.packageType.size() >= 1 && data.packageType.size() <= 40
+        && data.priority in ['standard', 'express']
+        && data.destLabel is string && data.destLabel.size() >= 1 && data.destLabel.size() <= 200
+        && isValidLatLng(data.destLat, data.destLng)
+        && isValidLatLng(data.startLat, data.startLng)
+        && data.status in ['active', 'delivered', 'cancelled']
+        && data.trackingState in ['starting', 'live', 'stopped', 'offline', 'completed', 'cancelled']
+        && data.sequence is number && data.sequence >= 0
+        && (!('lat' in data) || data.lat == null || (data.lat is number && data.lat >= -90 && data.lat <= 90))
+        && (!('lng' in data) || data.lng == null || (data.lng is number && data.lng >= -180 && data.lng <= 180))
+        && (!('heading' in data) || data.heading == null || (data.heading is number && data.heading >= 0 && data.heading <= 360))
+        && (!('speed' in data) || data.speed == null || (data.speed is number && data.speed >= 0 && data.speed <= 120))
+        && (!('accuracy' in data) || data.accuracy == null || (data.accuracy is number && data.accuracy >= 0 && data.accuracy <= 10000))
+        && (!('isMoving' in data) || data.isMoving is bool)
+        && (!('routeDistanceMeters' in data) || data.routeDistanceMeters == null || (data.routeDistanceMeters is number && data.routeDistanceMeters >= 0))
+        && (!('routeDurationSeconds' in data) || data.routeDurationSeconds == null || (data.routeDurationSeconds is number && data.routeDurationSeconds >= 0))
+        && (!('locationAt' in data) || data.locationAt == null || data.locationAt is number)
+        && (!('deliveredAt' in data) || data.deliveredAt == null || data.deliveredAt is timestamp)
+        && data.lastUpdated is timestamp;
+    }
+
+    function isValidOrderEvent(data) {
+      return data.keys().hasAll(['eventId', 'type', 'message', 'actorUid', 'createdAt'])
+        && data.keys().hasOnly(['eventId', 'type', 'message', 'lat', 'lng', 'actorUid', 'createdAt'])
+        && isValidId(data.eventId)
+        && data.type in ['created', 'moving', 'stopped', 'destination_updated', 'offline_synced', 'delivered', 'cancelled']
+        && data.message is string && data.message.size() >= 1 && data.message.size() <= 200
+        && (!('lat' in data) || data.lat == null || (data.lat is number && data.lat >= -90 && data.lat <= 90))
+        && (!('lng' in data) || data.lng == null || (data.lng is number && data.lng >= -180 && data.lng <= 180))
+        && isValidId(data.actorUid)
+        && data.createdAt is timestamp;
+    }
+
+    // 4. Collection Rules
+
+    match /users/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isVerified()
+        && isValidId(userId)
+        && isOwner(userId)
+        && isValidUserProfile(incoming())
+        && incoming().uid == userId
+        && incoming().role == 'rider'
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified()
+        && isValidId(userId)
+        && isValidUserProfile(incoming())
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          isAdmin()
+          || (
+            isOwner(userId)
+            && incoming().role == existing().role
+            && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'phone', 'bikePlate', 'isOnline', 'updatedAt'])
+          )
+        );
+      allow delete: if isValidId(userId) && isAdmin();
+    }
+
+    match /admins/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isValidId(userId)
+        && isAdmin()
+        && isValidAdminRecord(incoming())
+        && incoming().uid == userId
+        && incoming().createdAt == request.time;
+      allow update: if false;
+      allow delete: if isValidId(userId) && isAdmin();
+    }
+
+    match /orders/{orderId} {
+      allow get: if isValidOrderId(orderId) && (
+        isAdmin() || (isSignedIn() && existing().riderUid == request.auth.uid)
+      );
+      allow list: if isAdmin() || (
+        isSignedIn() && resource.data.riderUid == request.auth.uid
+      );
+      allow create: if isVerified()
+        && isValidOrderId(orderId)
+        && isValidOrder(incoming())
+        && incoming().orderId == orderId
+        && (isAdmin() || incoming().riderUid == request.auth.uid)
+        && incoming().status == 'active'
+        && incoming().createdAt == request.time
+        && incoming().lastUpdated == request.time;
+      allow update: if isVerified()
+        && isValidOrderId(orderId)
+        && isValidOrder(incoming())
+        && incoming().orderId == existing().orderId
+        && incoming().createdAt == existing().createdAt
+        && incoming().lastUpdated == request.time
+        && (
+          isAdmin()
+          || (
+            existing().riderUid == request.auth.uid
+            && existing().status == 'active'
+            && incoming().riderUid == existing().riderUid
+            && incoming().deliveryCode == existing().deliveryCode
+            && (
+              (
+                incoming().status == 'active'
+                && incoming().sequence >= existing().sequence
+                && incoming().diff(existing()).affectedKeys().hasOnly([
+                  'lat', 'lng', 'heading', 'speed', 'accuracy', 'isMoving',
+                  'trackingState', 'locationAt', 'heartbeatAt', 'sequence',
+                  'routeDistanceMeters', 'routeDurationSeconds', 'lastUpdated'
+                ])
+              )
+              || (
+                incoming().status == 'active'
+                && incoming().diff(existing()).affectedKeys().hasOnly([
+                  'destAddress', 'destPlaceId', 'destLat', 'destLng',
+                  'routeDistanceMeters', 'routeDurationSeconds', 'lastUpdated'
+                ])
+              )
+              || (
+                incoming().status == 'delivered'
+                && incoming().trackingState == 'completed'
+                && incoming().deliveredAt == request.time
+                && incoming().diff(existing()).affectedKeys().hasOnly([
+                  'status', 'trackingState', 'isMoving', 'deliveredAt', 'lastUpdated'
+                ])
+              )
+            )
+          )
+        );
+      allow delete: if isValidOrderId(orderId) && isAdmin();
+
+      match /events/{eventId} {
+        allow get: if isValidOrderId(orderId) && isValidId(eventId) && (
+          isAdmin()
+          || (isSignedIn() && get(/databases/$(database)/documents/orders/$(orderId)).data.riderUid == request.auth.uid)
+        );
+        allow list: if isValidOrderId(orderId) && (
+          isAdmin()
+          || (isSignedIn() && get(/databases/$(database)/documents/orders/$(orderId)).data.riderUid == request.auth.uid)
+        );
+        allow create: if isVerified()
+          && isValidOrderId(orderId)
+          && isValidId(eventId)
+          && isValidOrderEvent(incoming())
+          && incoming().eventId == eventId
+          && incoming().createdAt == request.time
+          && (
+            isAdmin()
+            || (
+              incoming().actorUid == request.auth.uid
+              && getAfter(/databases/$(database)/documents/orders/$(orderId)).data.riderUid == request.auth.uid
+            )
+          );
+        allow update: if false;
+        allow delete: if isValidOrderId(orderId) && isValidId(eventId) && isAdmin();
+      }
+    }
+
+    match /publicTracking/{orderId} {
+      allow get: if isSignedIn() && isValidOrderId(orderId);
+      allow list: if false;
+      allow create: if isVerified()
+        && isValidOrderId(orderId)
+        && isValidPublicTracking(incoming())
+        && incoming().orderId == orderId
+        && (isAdmin() || incoming().riderUid == request.auth.uid)
+        && incoming().status == 'active'
+        && incoming().lastUpdated == request.time
+        && existsAfter(/databases/$(database)/documents/orders/$(orderId));
+      allow update: if isVerified()
+        && isValidOrderId(orderId)
+        && isValidPublicTracking(incoming())
+        && incoming().orderId == existing().orderId
+        && incoming().lastUpdated == request.time
+        && (
+          isAdmin()
+          || (
+            existing().riderUid == request.auth.uid
+            && existing().status == 'active'
+            && incoming().riderUid == existing().riderUid
+            && (
+              (
+                incoming().status == 'active'
+                && incoming().sequence >= existing().sequence
+                && incoming().diff(existing()).affectedKeys().hasOnly([
+                  'lat', 'lng', 'heading', 'speed', 'accuracy', 'isMoving',
+                  'trackingState', 'locationAt', 'sequence',
+                  'routeDistanceMeters', 'routeDurationSeconds', 'lastUpdated'
+                ])
+              )
+              || (
+                incoming().status == 'active'
+                && incoming().diff(existing()).affectedKeys().hasOnly([
+                  'destLabel', 'destLat', 'destLng',
+                  'routeDistanceMeters', 'routeDurationSeconds', 'lastUpdated'
+                ])
+              )
+              || (
+                incoming().status == 'delivered'
+                && incoming().trackingState == 'completed'
+                && incoming().deliveredAt == request.time
+                && incoming().diff(existing()).affectedKeys().hasOnly([
+                  'status', 'trackingState', 'isMoving', 'deliveredAt', 'lastUpdated'
+                ])
+              )
+            )
+          )
+        );
+      allow delete: if isValidOrderId(orderId) && isAdmin();
+    }
+  }
+}

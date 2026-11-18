@@ -1,0 +1,186 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --font-display: 'Barlow Condensed', system-ui, sans-serif;
+  --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --brand-yellow: #FFC107;
+  --brand-yellow-strong: #F2B705;
+  --brand-black: #0A0A0A;
+  --surface: #ffffff;
+  --surface-2: #f7f8fa;
+  --surface-3: #edeff3;
+  --border: rgba(10, 12, 20, 0.08);
+  --border-strong: rgba(10, 12, 20, 0.16);
+  --text-main: #0b0d12;
+  --text-muted: #5a6072;
+  --bg-canvas: #f4f5f7;
+}
+
+.dark,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --surface: #12141a;
+  --surface-2: #161922;
+  --surface-3: #1e222e;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --text-main: #f3f4f7;
+  --text-muted: #9ca3af;
+  --bg-canvas: #0A0A0A;
+}
+
+@layer base {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-body);
+    background-color: var(--bg-canvas);
+    color: var(--text-main);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background: #FFC107;
+    color: #0A0A0A;
+  }
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono-tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes riderPulseRing {
+  0% {
+    transform: scale(0.75);
+    opacity: 0.78;
+  }
+  100% {
+    transform: scale(2.15);
+    opacity: 0;
+  }
+}
+
+.rider-pulse-ring {
+  animation: riderPulseRing 1.9s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+@keyframes deliveryBikeRide {
+  0% {
+    transform: translateX(-18%) translateY(0px) rotate(-1deg);
+  }
+  25% {
+    transform: translateX(30%) translateY(-2px) rotate(0deg);
+  }
+  50% {
+    transform: translateX(82%) translateY(0px) rotate(1deg);
+  }
+  75% {
+    transform: translateX(30%) translateY(-1.5px) rotate(-1deg);
+  }
+  100% {
+    transform: translateX(-18%) translateY(0px) rotate(-1deg);
+  }
+}
+
+@keyframes roadDashScroll {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: -64px 0;
+  }
+}
+
+.animate-delivery-bike {
+  animation: deliveryBikeRide 3.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.animate-road-dash {
+  background-image: repeating-linear-gradient(
+    to right,
+    #FFC107 0 18px,
+    transparent 18px 32px
+  );
+  background-size: 64px 3px;
+  animation: roadDashScroll 0.85s linear infinite;
+}
+
+/* Leaflet styling: crisp single free OpenStreetMap layer with sleek dark mode filter */
+.leaflet-container {
+  font-family: var(--font-body) !important;
+  background: #e5e7eb;
+  width: 100%;
+  height: 100%;
+}
+
+.leaflet-container img,
+.leaflet-container .leaflet-tile,
+.leaflet-container .leaflet-marker-icon,
+.leaflet-container .leaflet-marker-shadow {
+  max-width: none !important;
+  max-height: none !important;
+}
+
+.cm-leaflet-dark .leaflet-container {
+  background: #0e1015;
+}
+
+.cm-leaflet-dark .leaflet-tile-pane {
+  filter: invert(93%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
+.leaflet-control-attribution {
+  font-size: 10px !important;
+  background: rgba(10, 10, 10, 0.72) !important;
+  color: #cbd5e1 !important;
+  border-radius: 6px 0 0 0 !important;
+}
+
+.leaflet-control-attribution a {
+  color: #FFC107 !important;
+}
+
+.cm-div-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+@keyframes routeDashFlow {
+  to {
+    stroke-dashoffset: -48;
+  }
+}
+
+.cm-route-flow {
+  animation: routeDashFlow 1.25s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
