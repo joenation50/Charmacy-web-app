@@ -8,19 +8,19 @@ import {
   persistentMultipleTabManager,
 } from 'firebase/firestore';
 
+// Use Vite environment variables for security
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'charmacy-tracking.firebaseapp.com',
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'charmacy-tracking',
-  storageBucket:
-    import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'charmacy-tracking.firebasestorage.app',
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'charmacy-tracking.firebasestorage.app',
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '187174319075',
   appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:187174319075:web:4c4d6b781a6b31eb33a6d6',
 };
 
 if (!firebaseConfig.apiKey) {
   console.warn(
-    'VITE_FIREBASE_API_KEY is not set. Add it in .env.local (dev) or your hosting Environment Variables.'
+    'VITE_FIREBASE_API_KEY is not set. Add it in .env.local (dev) or your Hosting Environment Variables.'
   );
 }
 
